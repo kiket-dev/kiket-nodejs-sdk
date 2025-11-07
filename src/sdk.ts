@@ -147,8 +147,14 @@ export class KiketSDK {
           return;
         }
 
-        // Get handler
-        const metadata = this.registry.get(event, requestedVersion);
+        // Normalize version: try with 'v' prefix if just a number, or without if it has 'v'
+        let metadata = this.registry.get(event, requestedVersion);
+        if (!metadata) {
+          const alternateVersion = /^\d+$/.test(requestedVersion)
+            ? `v${requestedVersion}`
+            : requestedVersion.replace(/^v/, '');
+          metadata = this.registry.get(event, alternateVersion);
+        }
         if (!metadata) {
           res.status(404).json({
             error: `No handler registered for event '${event}' with version '${requestedVersion}'`,
