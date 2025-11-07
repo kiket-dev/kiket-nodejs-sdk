@@ -103,7 +103,7 @@ describe('KiketSDK', () => {
         .send(body);
 
       expect(response.status).toBe(500);
-      expect(response.body.error).toContain('Handler failed');
+      expect((response.body as { error?: string }).error).toContain('Handler failed');
     });
   });
 
@@ -131,7 +131,10 @@ describe('KiketSDK', () => {
   });
 });
 
-function createSignedRequest(secret: string, payload: Record<string, unknown>) {
+function createSignedRequest(
+  secret: string,
+  payload: Record<string, unknown>
+): { body: string; headers: Record<string, string> } {
   const body = JSON.stringify(payload);
   const { signature, timestamp } = generateSignature(secret, body);
 

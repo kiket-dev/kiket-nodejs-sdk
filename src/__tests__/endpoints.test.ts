@@ -40,7 +40,7 @@ describe('KiketEndpoints', () => {
     it('should throw error when extension ID not provided', async () => {
       const endpointsNoId = new KiketEndpoints(mockClient, undefined, 'v1');
 
-      await expect(endpointsNoId.logEvent('test', {})).rejects.toThrow(
+      await expect(async () => await endpointsNoId.logEvent('test', {})).rejects.toThrow(
         'Extension ID required'
       );
     });
@@ -60,7 +60,7 @@ describe('KiketEndpoints', () => {
     it('should throw error when extension ID not provided', async () => {
       const endpointsNoId = new KiketEndpoints(mockClient, undefined, 'v1');
 
-      await expect(endpointsNoId.getMetadata()).rejects.toThrow('Extension ID required');
+      await expect(async () => await endpointsNoId.getMetadata()).rejects.toThrow('Extension ID required');
     });
   });
 

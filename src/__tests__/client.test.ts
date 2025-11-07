@@ -2,10 +2,17 @@
  * Tests for HTTP client.
  */
 import { KiketHttpClient, KiketSDKError } from '../client';
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
+
+interface MockAxiosInstance extends Partial<AxiosInstance> {
+  get: jest.MockedFunction<AxiosInstance['get']>;
+  post?: jest.MockedFunction<AxiosInstance['post']>;
+  put?: jest.MockedFunction<AxiosInstance['put']>;
+  delete?: jest.MockedFunction<AxiosInstance['delete']>;
+}
 
 describe('KiketHttpClient', () => {
   beforeEach(() => {
@@ -21,10 +28,10 @@ describe('KiketHttpClient', () => {
 
   describe('get', () => {
     it('should make GET request with auth headers', async () => {
-      const mockAxiosInstance = {
+      const mockAxiosInstance: MockAxiosInstance = {
         get: jest.fn().mockResolvedValue({ data: { result: 'success' } }),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123', 'v1');
       const result = await client.get('/test');
@@ -34,12 +41,12 @@ describe('KiketHttpClient', () => {
     });
 
     it('should handle errors', async () => {
-      const mockAxiosInstance = {
+      const mockAxiosInstance: MockAxiosInstance = {
         get: jest.fn().mockRejectedValue({
           response: { status: 404, statusText: 'Not Found', data: {} },
         }),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123');
 
@@ -49,10 +56,11 @@ describe('KiketHttpClient', () => {
 
   describe('post', () => {
     it('should make POST request with data', async () => {
-      const mockAxiosInstance = {
+      const mockAxiosInstance: MockAxiosInstance = {
+        get: jest.fn(),
         post: jest.fn().mockResolvedValue({ data: { id: '123' } }),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123');
       const result = await client.post('/test', { name: 'test' });
@@ -64,10 +72,11 @@ describe('KiketHttpClient', () => {
 
   describe('put', () => {
     it('should make PUT request', async () => {
-      const mockAxiosInstance = {
+      const mockAxiosInstance: MockAxiosInstance = {
+        get: jest.fn(),
         put: jest.fn().mockResolvedValue({ data: { updated: true } }),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123');
       const result = await client.put('/test', { value: 'updated' });
@@ -78,10 +87,11 @@ describe('KiketHttpClient', () => {
 
   describe('delete', () => {
     it('should make DELETE request', async () => {
-      const mockAxiosInstance = {
+      const mockAxiosInstance: MockAxiosInstance = {
+        get: jest.fn(),
         delete: jest.fn().mockResolvedValue({ data: { deleted: true } }),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123');
       const result = await client.delete('/test');

@@ -2,10 +2,14 @@
  * Tests for telemetry reporter.
  */
 import { TelemetryReporter } from '../telemetry';
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
+
+interface MockAxiosInstance extends Partial<AxiosInstance> {
+  post: jest.MockedFunction<AxiosInstance['post']>;
+}
 
 describe('TelemetryReporter', () => {
   beforeEach(() => {
@@ -57,10 +61,10 @@ describe('TelemetryReporter', () => {
     });
 
     it('should send to telemetry URL when provided', async () => {
-      const mockAxiosInstance = {
+      const mockAxiosInstance: MockAxiosInstance = {
         post: jest.fn().mockResolvedValue({}),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
 
       const reporter = new TelemetryReporter(
         true,
@@ -118,10 +122,10 @@ describe('TelemetryReporter', () => {
     });
 
     it('should handle telemetry URL errors gracefully', async () => {
-      const mockAxiosInstance = {
+      const mockAxiosInstance: MockAxiosInstance = {
         post: jest.fn().mockRejectedValue(new Error('Network error')),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
 
       const reporter = new TelemetryReporter(
         true,

@@ -41,7 +41,7 @@ describe('KiketSecretManager', () => {
     it('should throw error when extension ID not provided', async () => {
       const manager = new KiketSecretManager(mockClient, undefined);
 
-      await expect(manager.get('API_KEY')).rejects.toThrow('Extension ID required');
+      await expect(async () => await manager.get('API_KEY')).rejects.toThrow('Extension ID required');
     });
   });
 
@@ -60,7 +60,7 @@ describe('KiketSecretManager', () => {
     it('should throw error when extension ID not provided', async () => {
       const manager = new KiketSecretManager(mockClient, undefined);
 
-      await expect(manager.set('API_KEY', 'value')).rejects.toThrow('Extension ID required');
+      await expect(async () => await manager.set('API_KEY', 'value')).rejects.toThrow('Extension ID required');
     });
   });
 
@@ -76,7 +76,7 @@ describe('KiketSecretManager', () => {
     it('should throw error when extension ID not provided', async () => {
       const manager = new KiketSecretManager(mockClient, undefined);
 
-      await expect(manager.delete('API_KEY')).rejects.toThrow('Extension ID required');
+      await expect(async () => await manager.delete('API_KEY')).rejects.toThrow('Extension ID required');
     });
   });
 
@@ -93,7 +93,7 @@ describe('KiketSecretManager', () => {
     it('should throw error when extension ID not provided', async () => {
       const manager = new KiketSecretManager(mockClient, undefined);
 
-      await expect(manager.list()).rejects.toThrow('Extension ID required');
+      await expect(async () => await manager.list()).rejects.toThrow('Extension ID required');
     });
   });
 
