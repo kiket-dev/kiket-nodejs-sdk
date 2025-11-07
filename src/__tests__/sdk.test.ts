@@ -24,7 +24,7 @@ describe('KiketSDK', () => {
     it('should use webhook decorator', () => {
       const sdk = new KiketSDK({ webhookSecret: secret, workspaceToken });
 
-      const handler = sdk.webhook('test.event', 'v1')((payload, context) => {
+      const handler = sdk.webhook('test.event', 'v1')((_payload, _context) => {
         return { ok: true };
       });
 
