@@ -43,7 +43,7 @@ describe('KiketSDK', () => {
       const { body, headers } = createSignedRequest(secret, payload);
 
       const response = await request(sdk.app)
-        .post('/v/1/webhooks/test.event')
+        .post('/v/v1/webhooks/test.event')
         .set(headers)
         .send(body);
 
@@ -81,7 +81,7 @@ describe('KiketSDK', () => {
       const { body, headers } = createSignedRequest(secret, payload);
 
       const response = await request(sdk.app)
-        .post('/v/1/webhooks/unknown.event')
+        .post('/v/v1/webhooks/unknown.event')
         .set(headers)
         .send(body);
 
@@ -98,7 +98,7 @@ describe('KiketSDK', () => {
       const { body, headers } = createSignedRequest(secret, payload);
 
       const response = await request(sdk.app)
-        .post('/v/1/webhooks/test.event')
+        .post('/v/v1/webhooks/test.event')
         .set(headers)
         .send(body);
 

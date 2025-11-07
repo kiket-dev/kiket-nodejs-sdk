@@ -13,8 +13,8 @@ interface MockAxiosInstance extends Partial<AxiosInstance> {
   put?: jest.MockedFunction<AxiosInstance['put']>;
   delete?: jest.MockedFunction<AxiosInstance['delete']>;
   interceptors: {
-    request: { use: jest.Mock };
-    response: { use: jest.Mock };
+    request: { use: jest.Mock; eject: jest.Mock; clear: jest.Mock };
+    response: { use: jest.Mock; eject: jest.Mock; clear: jest.Mock };
   };
 }
 
@@ -25,8 +25,16 @@ function createMockAxiosInstance(overrides: Partial<MockAxiosInstance> = {}): Mo
     put: jest.fn(),
     delete: jest.fn(),
     interceptors: {
-      request: { use: jest.fn((fn) => fn) },
-      response: { use: jest.fn((fn) => fn) },
+      request: {
+        use: jest.fn(() => 0),
+        eject: jest.fn(),
+        clear: jest.fn()
+      },
+      response: {
+        use: jest.fn(() => 0),
+        eject: jest.fn(),
+        clear: jest.fn()
+      },
     },
     ...overrides,
   };
@@ -62,14 +70,25 @@ describe('KiketHttpClient', () => {
     });
 
     it('should handle errors', async () => {
-      const mockAxiosInstance = createMockAxiosInstance({
-        get: jest.fn().mockRejectedValue({
-          response: { status: 404, statusText: 'Not Found', data: {} },
-        }),
-      });
+      const mockAxiosInstance = createMockAxiosInstance();
       mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123');
+
+      // Get the error handler that was registered
+      const responseInterceptor = mockAxiosInstance.interceptors.response.use;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const errorHandler = responseInterceptor.mock.calls[0][1] as (error: unknown) => never;
+
+      // Mock axios to reject with an axios error
+      const axiosError = {
+        response: { status: 404, statusText: 'Not Found', data: {} },
+        isAxiosError: true,
+      };
+
+      mockAxiosInstance.get.mockImplementation(() => {
+        throw errorHandler(axiosError);
+      });
 
       await expect(client.get('/test')).rejects.toThrow(KiketSDKError);
     });

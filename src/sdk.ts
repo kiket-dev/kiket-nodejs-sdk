@@ -106,9 +106,12 @@ export class KiketSDK {
   private buildApp(): Express {
     const app = express();
 
-    // Parse JSON bodies
-    app.use(express.json());
-    app.use(express.raw({ type: 'application/json' }));
+    // Store raw body for signature verification
+    app.use(express.json({
+      verify: (req: Request, _res, buf) => {
+        (req as Request & { rawBody?: Buffer }).rawBody = buf;
+      }
+    }));
 
     // Webhook dispatch handler
     const dispatchHandler = async (req: Request, res: Response): Promise<void> => {
@@ -117,7 +120,7 @@ export class KiketSDK {
 
       try {
         // Get raw body for signature verification
-        const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body));
+        const rawBody = (req as Request & { rawBody?: Buffer }).rawBody || Buffer.from(JSON.stringify(req.body));
 
         // Verify signature
         try {
