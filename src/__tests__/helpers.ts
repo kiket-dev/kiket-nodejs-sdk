@@ -46,59 +46,53 @@ export function createTestContext(overrides: Record<string, unknown> = {}): Reco
 /**
  * Create a mock Kiket client.
  */
-export function createMockClient(): jest.Mocked<{
-  get: <T = unknown>() => Promise<T>;
-  post: <T = unknown>() => Promise<T>;
-  put: <T = unknown>() => Promise<T>;
-  delete: <T = unknown>() => Promise<T>;
-  close: () => Promise<void>;
-}> {
+export function createMockClient(): {
+  get: jest.Mock;
+  post: jest.Mock;
+  put: jest.Mock;
+  delete: jest.Mock;
+  close: jest.Mock;
+} {
   return {
-    get: jest.fn().mockResolvedValue({}) as jest.MockedFunction<() => Promise<unknown>>,
-    post: jest.fn().mockResolvedValue({}) as jest.MockedFunction<() => Promise<unknown>>,
-    put: jest.fn().mockResolvedValue({}) as jest.MockedFunction<() => Promise<unknown>>,
-    delete: jest.fn().mockResolvedValue({}) as jest.MockedFunction<() => Promise<unknown>>,
-    close: jest.fn().mockResolvedValue(undefined) as jest.MockedFunction<() => Promise<void>>,
+    get: jest.fn().mockResolvedValue({}),
+    post: jest.fn().mockResolvedValue({}),
+    put: jest.fn().mockResolvedValue({}),
+    delete: jest.fn().mockResolvedValue({}),
+    close: jest.fn().mockResolvedValue(undefined),
   };
 }
 
 /**
  * Create mock endpoints.
  */
-export function createMockEndpoints(): jest.Mocked<{
+export function createMockEndpoints(): {
   secrets: ReturnType<typeof createMockSecretManager>;
-  logEvent: (event: string, data: Record<string, unknown>) => Promise<void>;
-  getMetadata: () => Promise<unknown>;
-}> {
+  logEvent: jest.Mock;
+  getMetadata: jest.Mock;
+} {
   const secrets = createMockSecretManager();
   return {
     secrets,
-    logEvent: jest.fn().mockResolvedValue(undefined) as jest.MockedFunction<
-      (event: string, data: Record<string, unknown>) => Promise<void>
-    >,
-    getMetadata: jest.fn().mockResolvedValue({}) as jest.MockedFunction<() => Promise<unknown>>,
+    logEvent: jest.fn().mockResolvedValue(undefined),
+    getMetadata: jest.fn().mockResolvedValue({}),
   };
 }
 
 /**
  * Create a mock secret manager.
  */
-export function createMockSecretManager(): jest.Mocked<{
-  get: (key: string) => Promise<string | null>;
-  set: (key: string, value: string) => Promise<void>;
-  delete: (key: string) => Promise<void>;
-  list: () => Promise<string[]>;
-  rotate: (key: string, newValue: string) => Promise<void>;
-}> {
+export function createMockSecretManager(): {
+  get: jest.Mock;
+  set: jest.Mock;
+  delete: jest.Mock;
+  list: jest.Mock;
+  rotate: jest.Mock;
+} {
   return {
-    get: jest.fn().mockResolvedValue(null) as jest.MockedFunction<(key: string) => Promise<string | null>>,
-    set: jest.fn().mockResolvedValue(undefined) as jest.MockedFunction<
-      (key: string, value: string) => Promise<void>
-    >,
-    delete: jest.fn().mockResolvedValue(undefined) as jest.MockedFunction<(key: string) => Promise<void>>,
-    list: jest.fn().mockResolvedValue([]) as jest.MockedFunction<() => Promise<string[]>>,
-    rotate: jest.fn().mockResolvedValue(undefined) as jest.MockedFunction<
-      (key: string, newValue: string) => Promise<void>
-    >,
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue(undefined),
+    delete: jest.fn().mockResolvedValue(undefined),
+    list: jest.fn().mockResolvedValue([]),
+    rotate: jest.fn().mockResolvedValue(undefined),
   };
 }

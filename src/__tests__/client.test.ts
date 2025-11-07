@@ -31,7 +31,7 @@ describe('KiketHttpClient', () => {
       const mockAxiosInstance: MockAxiosInstance = {
         get: jest.fn().mockResolvedValue({ data: { result: 'success' } }),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123', 'v1');
       const result = await client.get('/test');
@@ -46,7 +46,7 @@ describe('KiketHttpClient', () => {
           response: { status: 404, statusText: 'Not Found', data: {} },
         }),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123');
 
@@ -60,7 +60,7 @@ describe('KiketHttpClient', () => {
         get: jest.fn(),
         post: jest.fn().mockResolvedValue({ data: { id: '123' } }),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123');
       const result = await client.post('/test', { name: 'test' });
@@ -76,7 +76,7 @@ describe('KiketHttpClient', () => {
         get: jest.fn(),
         put: jest.fn().mockResolvedValue({ data: { updated: true } }),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123');
       const result = await client.put('/test', { value: 'updated' });
@@ -91,7 +91,7 @@ describe('KiketHttpClient', () => {
         get: jest.fn(),
         delete: jest.fn().mockResolvedValue({ data: { deleted: true } }),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123');
       const result = await client.delete('/test');

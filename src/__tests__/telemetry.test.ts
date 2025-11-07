@@ -64,7 +64,7 @@ describe('TelemetryReporter', () => {
       const mockAxiosInstance: MockAxiosInstance = {
         post: jest.fn().mockResolvedValue({}),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
 
       const reporter = new TelemetryReporter(
         true,
@@ -125,7 +125,7 @@ describe('TelemetryReporter', () => {
       const mockAxiosInstance: MockAxiosInstance = {
         post: jest.fn().mockRejectedValue(new Error('Network error')),
       };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as AxiosInstance);
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
 
       const reporter = new TelemetryReporter(
         true,
