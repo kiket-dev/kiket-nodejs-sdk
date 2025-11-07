@@ -63,7 +63,15 @@ export function verifySignature(
   const expectedSignature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
 
   // Constant-time comparison to prevent timing attacks
-  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
+  const signatureBuffer = Buffer.from(signature, 'utf8');
+  const expectedBuffer = Buffer.from(expectedSignature, 'utf8');
+
+  // Check lengths match before timing-safe comparison
+  if (signatureBuffer.length !== expectedBuffer.length) {
+    throw new AuthenticationError('Invalid signature');
+  }
+
+  if (!crypto.timingSafeEqual(signatureBuffer, expectedBuffer)) {
     throw new AuthenticationError('Invalid signature');
   }
 }

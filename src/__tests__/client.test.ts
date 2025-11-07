@@ -12,6 +12,24 @@ interface MockAxiosInstance extends Partial<AxiosInstance> {
   post?: jest.MockedFunction<AxiosInstance['post']>;
   put?: jest.MockedFunction<AxiosInstance['put']>;
   delete?: jest.MockedFunction<AxiosInstance['delete']>;
+  interceptors: {
+    request: { use: jest.Mock };
+    response: { use: jest.Mock };
+  };
+}
+
+function createMockAxiosInstance(overrides: Partial<MockAxiosInstance> = {}): MockAxiosInstance {
+  return {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    interceptors: {
+      request: { use: jest.fn((fn) => fn) },
+      response: { use: jest.fn((fn) => fn) },
+    },
+    ...overrides,
+  };
 }
 
 describe('KiketHttpClient', () => {
@@ -21,6 +39,9 @@ describe('KiketHttpClient', () => {
 
   describe('constructor', () => {
     it('should create client with base URL', () => {
+      const mockInstance = createMockAxiosInstance();
+      mockedAxios.create.mockReturnValue(mockInstance as unknown as AxiosInstance);
+
       const client = new KiketHttpClient('https://api.test.com', 'token123', 'v1');
       expect(client).toBeDefined();
     });
@@ -28,9 +49,9 @@ describe('KiketHttpClient', () => {
 
   describe('get', () => {
     it('should make GET request with auth headers', async () => {
-      const mockAxiosInstance: MockAxiosInstance = {
+      const mockAxiosInstance = createMockAxiosInstance({
         get: jest.fn().mockResolvedValue({ data: { result: 'success' } }),
-      };
+      });
       mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123', 'v1');
@@ -41,11 +62,11 @@ describe('KiketHttpClient', () => {
     });
 
     it('should handle errors', async () => {
-      const mockAxiosInstance: MockAxiosInstance = {
+      const mockAxiosInstance = createMockAxiosInstance({
         get: jest.fn().mockRejectedValue({
           response: { status: 404, statusText: 'Not Found', data: {} },
         }),
-      };
+      });
       mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123');
@@ -56,10 +77,9 @@ describe('KiketHttpClient', () => {
 
   describe('post', () => {
     it('should make POST request with data', async () => {
-      const mockAxiosInstance: MockAxiosInstance = {
-        get: jest.fn(),
+      const mockAxiosInstance = createMockAxiosInstance({
         post: jest.fn().mockResolvedValue({ data: { id: '123' } }),
-      };
+      });
       mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123');
@@ -72,10 +92,9 @@ describe('KiketHttpClient', () => {
 
   describe('put', () => {
     it('should make PUT request', async () => {
-      const mockAxiosInstance: MockAxiosInstance = {
-        get: jest.fn(),
+      const mockAxiosInstance = createMockAxiosInstance({
         put: jest.fn().mockResolvedValue({ data: { updated: true } }),
-      };
+      });
       mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123');
@@ -87,10 +106,9 @@ describe('KiketHttpClient', () => {
 
   describe('delete', () => {
     it('should make DELETE request', async () => {
-      const mockAxiosInstance: MockAxiosInstance = {
-        get: jest.fn(),
+      const mockAxiosInstance = createMockAxiosInstance({
         delete: jest.fn().mockResolvedValue({ data: { deleted: true } }),
-      };
+      });
       mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
 
       const client = new KiketHttpClient('https://api.test.com', 'token123');
@@ -102,6 +120,9 @@ describe('KiketHttpClient', () => {
 
   describe('close', () => {
     it('should close client without error', async () => {
+      const mockInstance = createMockAxiosInstance();
+      mockedAxios.create.mockReturnValue(mockInstance as unknown as AxiosInstance);
+
       const client = new KiketHttpClient('https://api.test.com', 'token123');
       await expect(client.close()).resolves.toBeUndefined();
     });
