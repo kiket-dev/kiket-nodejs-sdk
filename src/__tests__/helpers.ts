@@ -46,7 +46,7 @@ export function createTestContext(overrides: Record<string, unknown> = {}): Reco
 /**
  * Create a mock Kiket client.
  */
-export function createMockClient() {
+export function createMockClient(): any {
   return {
     get: jest.fn().mockResolvedValue({}),
     post: jest.fn().mockResolvedValue({}),
@@ -59,7 +59,7 @@ export function createMockClient() {
 /**
  * Create mock endpoints.
  */
-export function createMockEndpoints() {
+export function createMockEndpoints(): any {
   return {
     secrets: createMockSecretManager(),
     logEvent: jest.fn().mockResolvedValue(undefined),
@@ -70,7 +70,7 @@ export function createMockEndpoints() {
 /**
  * Create a mock secret manager.
  */
-export function createMockSecretManager() {
+export function createMockSecretManager(): any {
   return {
     get: jest.fn().mockResolvedValue(null),
     set: jest.fn().mockResolvedValue(undefined),
