@@ -1,0 +1,48 @@
+/**
+ * Kiket SDK for Node.js/TypeScript
+ *
+ * Build and run Kiket extensions with a batteries-included, strongly-typed TypeScript toolkit.
+ */
+
+// Main SDK class
+export { KiketSDK, createApp } from './sdk';
+
+// Types
+export type {
+  WebhookPayload,
+  Headers,
+  Settings,
+  WebhookHandler,
+  HandlerContext,
+  SDKConfig,
+  ExtensionManifest,
+  TelemetryRecord,
+  FeedbackHook,
+  KiketClient,
+  RequestOptions,
+  ExtensionEndpoints,
+  ExtensionSecretManager,
+  HandlerMetadata,
+  HandlerRegistry,
+} from './types';
+
+// Auth utilities
+export { verifySignature, generateSignature, AuthenticationError } from './auth';
+
+// Client
+export { KiketHttpClient, KiketSDKError } from './client';
+
+// Endpoints
+export { KiketEndpoints } from './endpoints';
+
+// Secrets
+export { KiketSecretManager } from './secrets';
+
+// Telemetry
+export { TelemetryReporter } from './telemetry';
+
+// Registry
+export { KiketHandlerRegistry } from './registry';
+
+// Manifest loader
+export { loadManifest, settingsDefaults, secretKeys, applySecretEnvOverrides } from './manifest';

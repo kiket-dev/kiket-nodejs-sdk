@@ -1,0 +1,99 @@
+/**
+ * Tests for HTTP client.
+ */
+import { KiketHttpClient, KiketSDKError } from '../client';
+import axios from 'axios';
+
+jest.mock('axios');
+const mockedAxios = axios as jest.Mocked<typeof axios>;
+
+describe('KiketHttpClient', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('constructor', () => {
+    it('should create client with base URL', () => {
+      const client = new KiketHttpClient('https://api.test.com', 'token123', 'v1');
+      expect(client).toBeDefined();
+    });
+  });
+
+  describe('get', () => {
+    it('should make GET request with auth headers', async () => {
+      const mockAxiosInstance = {
+        get: jest.fn().mockResolvedValue({ data: { result: 'success' } }),
+      };
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+
+      const client = new KiketHttpClient('https://api.test.com', 'token123', 'v1');
+      const result = await client.get('/test');
+
+      expect(result).toEqual({ result: 'success' });
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith('/test', expect.any(Object));
+    });
+
+    it('should handle errors', async () => {
+      const mockAxiosInstance = {
+        get: jest.fn().mockRejectedValue({
+          response: { status: 404, statusText: 'Not Found', data: {} },
+        }),
+      };
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+
+      const client = new KiketHttpClient('https://api.test.com', 'token123');
+
+      await expect(client.get('/test')).rejects.toThrow(KiketSDKError);
+    });
+  });
+
+  describe('post', () => {
+    it('should make POST request with data', async () => {
+      const mockAxiosInstance = {
+        post: jest.fn().mockResolvedValue({ data: { id: '123' } }),
+      };
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+
+      const client = new KiketHttpClient('https://api.test.com', 'token123');
+      const result = await client.post('/test', { name: 'test' });
+
+      expect(result).toEqual({ id: '123' });
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('/test', { name: 'test' }, expect.any(Object));
+    });
+  });
+
+  describe('put', () => {
+    it('should make PUT request', async () => {
+      const mockAxiosInstance = {
+        put: jest.fn().mockResolvedValue({ data: { updated: true } }),
+      };
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+
+      const client = new KiketHttpClient('https://api.test.com', 'token123');
+      const result = await client.put('/test', { value: 'updated' });
+
+      expect(result).toEqual({ updated: true });
+    });
+  });
+
+  describe('delete', () => {
+    it('should make DELETE request', async () => {
+      const mockAxiosInstance = {
+        delete: jest.fn().mockResolvedValue({ data: { deleted: true } }),
+      };
+      mockedAxios.create.mockReturnValue(mockAxiosInstance as any);
+
+      const client = new KiketHttpClient('https://api.test.com', 'token123');
+      const result = await client.delete('/test');
+
+      expect(result).toEqual({ deleted: true });
+    });
+  });
+
+  describe('close', () => {
+    it('should close client without error', async () => {
+      const client = new KiketHttpClient('https://api.test.com', 'token123');
+      await expect(client.close()).resolves.toBeUndefined();
+    });
+  });
+});
