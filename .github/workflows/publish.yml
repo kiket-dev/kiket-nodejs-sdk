@@ -29,7 +29,6 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/tags/nodejs-v}" >> $GITHUB_OUTPUT
 
       - name: Verify package.json version matches tag
-        working-directory: sdk/nodejs
         run: |
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
           if [ "$PACKAGE_VERSION" != "${{ steps.version.outputs.VERSION }}" ]; then
@@ -38,19 +37,15 @@ jobs:
           fi
 
       - name: Install dependencies
-        working-directory: sdk/nodejs
         run: npm ci
 
       - name: Run tests
-        working-directory: sdk/nodejs
         run: npm test
 
       - name: Build
-        working-directory: sdk/nodejs
         run: npm run build
 
       - name: Publish to GitHub Packages
-        working-directory: sdk/nodejs
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
