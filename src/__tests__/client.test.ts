@@ -59,7 +59,8 @@ describe('KiketHttpClient', () => {
       mockedAxios.create.mockReturnValue(mockInstance as unknown as AxiosInstance);
 
       new KiketHttpClient('https://api.test.com', undefined, undefined, 'ext_key');
-      const handler = mockInstance.interceptors.request.use.mock.calls[0][0];
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const handler = mockInstance.interceptors.request.use.mock.calls[0][0] as (config: { headers: Record<string, string> }) => { headers: Record<string, string> };
       const config = { headers: {} as Record<string, string> };
       handler(config);
       expect(config.headers['X-Kiket-API-Key']).toBe('ext_key');
