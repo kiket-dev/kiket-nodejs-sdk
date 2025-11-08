@@ -11,6 +11,7 @@
 - 🧪 **Testing utilities** – test helpers, signed-payload factories, and mock utilities to keep extensions reliable.
 - 🔁 **Version-aware routing** – register multiple handlers per event (`sdk.webhook(..., "v2")`) and propagate version headers on outbound calls.
 - 📦 **Manifest-aware defaults** – automatically loads `extension.yaml`/`manifest.yaml`, applies configuration defaults, and hydrates secrets from `KIKET_SECRET_*` environment variables.
+- 📇 **Custom data helper** – call `/api/v1/ext/custom_data/...` with `context.endpoints.customData(projectId)` using the configured extension API key.
 - 🧱 **Typed & documented** – designed for TypeScript with full type safety, strict mode, and rich JSDoc comments.
 - 📊 **Telemetry & feedback hooks** – capture handler duration/success metrics automatically and forward them to your own feedback callback or a hosted endpoint.
 
@@ -27,6 +28,7 @@ import { KiketSDK } from '@kiket/sdk';
 const sdk = new KiketSDK({
   webhookSecret: 'sh_123',
   workspaceToken: 'wk_test',
+  extensionApiKey: process.env.KIKET_EXTENSION_API_KEY,
   extensionId: 'com.example.marketing',
   extensionVersion: '1.0.0',
 });
@@ -61,6 +63,30 @@ sdk.webhook('issue.created', 'v2')(async (payload, context) => {
 // (/v/{version}/webhooks/{event}) or via the `X-Kiket-Event-Version` header.
 
 sdk.run('0.0.0.0', 8080);
+```
+
+### Custom Data Client
+
+When your manifest declares `custom_data.permissions`, set `extensionApiKey` (or `KIKET_EXTENSION_API_KEY`) so outbound calls to `/api/v1/ext/...` automatically include the required header:
+
+```typescript
+sdk.webhook('issue.created', 'v1')(async (payload, context) => {
+  const projectId = payload.issue.project_id;
+
+  const contacts = await context.endpoints.customData(projectId).list(
+    'com.example.crm.contacts',
+    'automation_records',
+    { limit: 10, filters: { status: 'active' } }
+  );
+
+  await context.endpoints.customData(projectId).create(
+    'com.example.crm.contacts',
+    'automation_records',
+    { email: 'lead@example.com', metadata: { source: 'webhook' } }
+  );
+
+  return { synced: contacts.data.length };
+});
 ```
 
 ## Telemetry & Feedback Hooks
@@ -127,6 +153,7 @@ The SDK automatically reads from these environment variables:
 
 - `KIKET_WEBHOOK_SECRET` – Webhook HMAC secret for signature verification
 - `KIKET_WORKSPACE_TOKEN` – Workspace token for API authentication
+- `KIKET_EXTENSION_API_KEY` – Extension API key for `/api/v1/ext/**` endpoints (custom data client)
 - `KIKET_BASE_URL` – Kiket API base URL (defaults to `https://kiket.dev`)
 - `KIKET_SDK_TELEMETRY_URL` – Telemetry reporting endpoint (optional)
 - `KIKET_SDK_TELEMETRY_OPTOUT` – Set to `1` to disable telemetry

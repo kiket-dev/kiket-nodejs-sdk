@@ -1,8 +1,9 @@
 /**
  * High-level extension endpoints.
  */
-import { ExtensionEndpoints, ExtensionSecretManager, KiketClient } from './types';
+import { ExtensionEndpoints, ExtensionSecretManager, KiketClient, CustomDataClient } from './types';
 import { KiketSecretManager } from './secrets';
+import { KiketCustomDataClient } from './custom_data';
 
 /**
  * Extension endpoints implementation.
@@ -37,5 +38,9 @@ export class KiketEndpoints implements ExtensionEndpoints {
     }
 
     return await this.client.get(`/extensions/${this.extensionId}`);
+  }
+
+  customData(projectId: number | string): CustomDataClient {
+    return new KiketCustomDataClient(this.client, projectId);
   }
 }

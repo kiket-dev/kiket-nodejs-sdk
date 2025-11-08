@@ -57,6 +57,8 @@ export interface SDKConfig {
   webhookSecret?: string;
   /** Workspace token for API authentication */
   workspaceToken?: string;
+  /** Extension API key for `/api/v1/ext` endpoints */
+  extensionApiKey?: string;
   /** Kiket API base URL */
   baseUrl?: string;
   /** Extension settings */
@@ -132,6 +134,8 @@ export interface KiketClient {
   post<T = unknown>(path: string, data?: unknown, options?: RequestOptions): Promise<T>;
   /** Make a PUT request */
   put<T = unknown>(path: string, data?: unknown, options?: RequestOptions): Promise<T>;
+  /** Make a PATCH request */
+  patch<T = unknown>(path: string, data?: unknown, options?: RequestOptions): Promise<T>;
   /** Make a DELETE request */
   delete<T = unknown>(path: string, options?: RequestOptions): Promise<T>;
   /** Close the client connection */
@@ -160,6 +164,8 @@ export interface ExtensionEndpoints {
   logEvent(event: string, data: Record<string, unknown>): Promise<void>;
   /** Get extension metadata */
   getMetadata(): Promise<unknown>;
+  /** Access custom data API */
+  customData(projectId: number | string): CustomDataClient;
 }
 
 /**
@@ -176,6 +182,43 @@ export interface ExtensionSecretManager {
   list(): Promise<string[]>;
   /** Rotate a secret (delete old, set new) */
   rotate(key: string, newValue: string): Promise<void>;
+}
+
+/**
+ * Custom data client.
+ */
+export interface CustomDataClient {
+  list(
+    moduleKey: string,
+    table: string,
+    options?: CustomDataListOptions
+  ): Promise<CustomDataListResponse>;
+  get(moduleKey: string, table: string, recordId: string | number): Promise<CustomDataRecordResponse>;
+  create(
+    moduleKey: string,
+    table: string,
+    record: Record<string, unknown>
+  ): Promise<CustomDataRecordResponse>;
+  update(
+    moduleKey: string,
+    table: string,
+    recordId: string | number,
+    record: Record<string, unknown>
+  ): Promise<CustomDataRecordResponse>;
+  delete(moduleKey: string, table: string, recordId: string | number): Promise<void>;
+}
+
+export interface CustomDataListOptions {
+  limit?: number;
+  filters?: Record<string, unknown>;
+}
+
+export interface CustomDataListResponse {
+  data: Array<Record<string, unknown>>;
+}
+
+export interface CustomDataRecordResponse {
+  data: Record<string, unknown>;
 }
 
 /**

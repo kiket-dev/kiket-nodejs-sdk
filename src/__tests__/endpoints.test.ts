@@ -13,6 +13,7 @@ describe('KiketEndpoints', () => {
       get: jest.fn(),
       post: jest.fn(),
       put: jest.fn(),
+      patch: jest.fn(),
       delete: jest.fn(),
       close: jest.fn(),
     } as jest.Mocked<KiketClient>;
@@ -67,6 +68,20 @@ describe('KiketEndpoints', () => {
   describe('secrets', () => {
     it('should provide access to secret manager', () => {
       expect(endpoints.secrets).toBeDefined();
+    });
+  });
+
+  describe('customData', () => {
+    it('should return custom data client bound to project', async () => {
+      mockClient.get.mockResolvedValue({ data: [] });
+
+      const customData = endpoints.customData(7);
+      await customData.list('com.example.module', 'records');
+
+      expect(mockClient.get).toHaveBeenCalledWith(
+        '/ext/custom_data/com.example.module/records',
+        { params: { project_id: '7' } }
+      );
     });
   });
 });

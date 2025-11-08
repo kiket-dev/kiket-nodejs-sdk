@@ -53,6 +53,17 @@ describe('KiketHttpClient', () => {
       const client = new KiketHttpClient('https://api.test.com', 'token123', 'v1');
       expect(client).toBeDefined();
     });
+
+    it('should inject extension api key header when provided', () => {
+      const mockInstance = createMockAxiosInstance();
+      mockedAxios.create.mockReturnValue(mockInstance as unknown as AxiosInstance);
+
+      new KiketHttpClient('https://api.test.com', undefined, undefined, 'ext_key');
+      const handler = mockInstance.interceptors.request.use.mock.calls[0][0];
+      const config = { headers: {} as Record<string, string> };
+      handler(config);
+      expect(config.headers['X-Kiket-API-Key']).toBe('ext_key');
+    });
   });
 
   describe('get', () => {

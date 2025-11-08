@@ -22,6 +22,7 @@ export type {
   RequestOptions,
   ExtensionEndpoints,
   ExtensionSecretManager,
+  CustomDataClient,
   HandlerMetadata,
   HandlerRegistry,
 } from './types';
@@ -34,6 +35,7 @@ export { KiketHttpClient, KiketSDKError } from './client';
 
 // Endpoints
 export { KiketEndpoints } from './endpoints';
+export { KiketCustomDataClient } from './custom_data';
 
 // Secrets
 export { KiketSecretManager } from './secrets';

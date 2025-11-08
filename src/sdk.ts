@@ -169,7 +169,8 @@ export class KiketSDK {
         const client = new KiketHttpClient(
           this.config.baseUrl,
           this.config.workspaceToken,
-          metadata.version
+          metadata.version,
+          this.config.extensionApiKey
         );
 
         const endpoints = new KiketEndpoints(client, this.config.extensionId, metadata.version);
@@ -254,6 +255,7 @@ export class KiketSDK {
       config.webhookSecret ||
       manifest?.delivery_secret ||
       process.env.KIKET_WEBHOOK_SECRET;
+    const resolvedExtensionApiKey = config.extensionApiKey || process.env.KIKET_EXTENSION_API_KEY;
 
     // Merge settings
     let manifestSettings = settingsDefaults(manifest);
@@ -276,6 +278,7 @@ export class KiketSDK {
       telemetryEnabled: config.telemetryEnabled ?? true,
       feedbackHook: config.feedbackHook,
       telemetryUrl: config.telemetryUrl || process.env.KIKET_SDK_TELEMETRY_URL,
+      extensionApiKey: resolvedExtensionApiKey,
     };
   }
 
@@ -292,6 +295,7 @@ export class KiketSDK {
 interface ResolvedConfig {
   webhookSecret?: string;
   workspaceToken?: string;
+  extensionApiKey?: string;
   baseUrl: string;
   settings: Settings;
   extensionId?: string;

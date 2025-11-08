@@ -13,6 +13,7 @@ describe('KiketSecretManager', () => {
       get: jest.fn(),
       post: jest.fn(),
       put: jest.fn(),
+      patch: jest.fn(),
       delete: jest.fn(),
       close: jest.fn(),
     } as jest.Mocked<KiketClient>;

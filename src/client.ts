@@ -21,10 +21,17 @@ export class KiketHttpClient implements KiketClient {
   private axios: AxiosInstance;
   private workspaceToken?: string;
   private eventVersion?: string;
+  private extensionApiKey?: string;
 
-  constructor(baseUrl: string, workspaceToken?: string, eventVersion?: string) {
+  constructor(
+    baseUrl: string,
+    workspaceToken?: string,
+    eventVersion?: string,
+    extensionApiKey?: string
+  ) {
     this.workspaceToken = workspaceToken;
     this.eventVersion = eventVersion;
+    this.extensionApiKey = extensionApiKey;
 
     this.axios = axios.create({
       baseURL: baseUrl,
@@ -42,6 +49,9 @@ export class KiketHttpClient implements KiketClient {
       }
       if (this.eventVersion && config.headers) {
         config.headers['X-Kiket-Event-Version'] = this.eventVersion;
+      }
+      if (this.extensionApiKey && config.headers) {
+        config.headers['X-Kiket-API-Key'] = this.extensionApiKey;
       }
       return config;
     });
@@ -80,6 +90,12 @@ export class KiketHttpClient implements KiketClient {
   async put<T = unknown>(path: string, data?: unknown, options?: RequestOptions): Promise<T> {
     const config = this.buildConfig(options);
     const response = await this.axios.put<T>(path, data, config);
+    return response.data;
+  }
+
+  async patch<T = unknown>(path: string, data?: unknown, options?: RequestOptions): Promise<T> {
+    const config = this.buildConfig(options);
+    const response = await this.axios.patch<T>(path, data, config);
     return response.data;
   }
 
