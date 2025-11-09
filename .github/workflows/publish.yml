@@ -3,7 +3,7 @@ name: Publish Package
 on:
   push:
     tags:
-      - 'nodejs-v*'
+      - 'kiket-nodejs-sdk-v*'
 
 permissions:
   contents: read
@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: '20.x'
           registry-url: 'https://npm.pkg.github.com'
-          scope: '@kiket'
+          scope: '@kiket-dev'
 
       - name: Extract version from tag
         id: version
@@ -56,15 +56,15 @@ jobs:
           tag_name: nodejs-v${{ steps.version.outputs.VERSION }}
           name: Node.js SDK v${{ steps.version.outputs.VERSION }}
           body: |
-            Release of @kiket/sdk version ${{ steps.version.outputs.VERSION }}
+            Release of @kiket-dev/kiket-nodejs-sdk version ${{ steps.version.outputs.VERSION }}
 
             ## Installation
             ```bash
-            npm install @kiket/sdk@${{ steps.version.outputs.VERSION }}
+            npm install @kiket-dev/kiket-nodejs-sdk@${{ steps.version.outputs.VERSION }}
             ```
 
             ## Changes
-            See [CHANGELOG.md](https://github.com/kiket/kiket-nodejs-sdk/blob/main/CHANGELOG.md) for details.
+            See [CHANGELOG.md](https://github.com/kiket-dev/kiket-nodejs-sdk/blob/main/CHANGELOG.md) for details.
           draft: false
           prerelease: false
         env:

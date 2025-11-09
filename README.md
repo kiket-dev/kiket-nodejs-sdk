@@ -18,12 +18,12 @@
 ## Quickstart
 
 ```bash
-npm install @kiket/sdk
+npm install @kiket-dev/sdk
 ```
 
 ```typescript
 // main.ts
-import { KiketSDK } from '@kiket/sdk';
+import { KiketSDK } from '@kiket-dev/sdk';
 
 const sdk = new KiketSDK({
   webhookSecret: 'sh_123',
@@ -146,7 +146,7 @@ Set `KIKET_SDK_TELEMETRY_OPTOUT=1` to disable reporting entirely. When `telemetr
 The SDK includes comprehensive test utilities:
 
 ```typescript
-import { createSignedPayload, createTestContext } from '@kiket/sdk/test';
+import { createSignedPayload, createTestContext } from '@kiket-dev/sdk/test';
 
 describe('My webhook handler', () => {
   it('should handle issue.created event', async () => {
