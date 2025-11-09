@@ -110,13 +110,25 @@ export interface TelemetryRecord {
   /** Execution duration in milliseconds */
   durationMs: number;
   /** Error message (if status is 'error') */
+  errorMessage?: string;
+  /** @deprecated Use errorMessage instead */
   message?: string;
+  /** Error class (if status is 'error') */
+  errorClass?: string;
+  /** Additional metadata */
+  metadata?: Record<string, unknown>;
   /** Extension identifier */
   extensionId?: string;
   /** Extension version */
   extensionVersion?: string;
   /** Timestamp */
   timestamp: string;
+}
+
+export interface TelemetryExtras {
+  errorMessage?: string;
+  errorClass?: string;
+  metadata?: Record<string, unknown>;
 }
 
 /**

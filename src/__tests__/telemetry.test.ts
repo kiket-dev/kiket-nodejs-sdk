@@ -2,14 +2,10 @@
  * Tests for telemetry reporter.
  */
 import { TelemetryReporter } from '../telemetry';
-import axios, { AxiosInstance } from 'axios';
+import axios from 'axios';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
-
-interface MockAxiosInstance extends Partial<AxiosInstance> {
-  post: jest.MockedFunction<AxiosInstance['post']>;
-}
 
 describe('TelemetryReporter', () => {
   beforeEach(() => {
@@ -23,7 +19,7 @@ describe('TelemetryReporter', () => {
 
       await reporter.record('test.event', 'v1', 'ok', 100);
 
-      expect(mockedAxios.create).not.toHaveBeenCalled();
+      expect(mockedAxios.post).not.toHaveBeenCalled();
     });
 
     it('should not record when opted out', async () => {
@@ -33,7 +29,7 @@ describe('TelemetryReporter', () => {
 
       await reporter.record('test.event', 'v1', 'ok', 100);
 
-      expect(mockedAxios.create).not.toHaveBeenCalled();
+      expect(mockedAxios.post).not.toHaveBeenCalled();
     });
 
     it('should call feedback hook when provided', async () => {
@@ -61,28 +57,28 @@ describe('TelemetryReporter', () => {
     });
 
     it('should send to telemetry URL when provided', async () => {
-      const mockAxiosInstance: MockAxiosInstance = {
-        post: jest.fn().mockResolvedValue({}),
-      };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
-
+      mockedAxios.post.mockResolvedValue({});
       const reporter = new TelemetryReporter(
         true,
-        'https://telemetry.test.com',
+        'https://telemetry.test.com/api/v1/ext',
         undefined,
         'ext-id',
-        '1.0.0'
+        '1.0.0',
+        'secret'
       );
 
-      await reporter.record('test.event', 'v1', 'ok', 100);
+      await reporter.record('test.event', 'v1', 'ok', 123.4);
 
-      expect(mockAxiosInstance.post).toHaveBeenCalledWith(
-        '/telemetry',
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        'https://telemetry.test.com/api/v1/ext/telemetry',
         expect.objectContaining({
           event: 'test.event',
           version: 'v1',
           status: 'ok',
-          durationMs: 100,
+          duration_ms: 123,
+        }),
+        expect.objectContaining({
+          headers: { 'X-Kiket-API-Key': 'secret' },
         })
       );
     });
@@ -97,12 +93,12 @@ describe('TelemetryReporter', () => {
         '1.0.0'
       );
 
-      await reporter.record('test.event', 'v1', 'error', 100, 'Handler failed');
+      await reporter.record('test.event', 'v1', 'error', 100, { errorMessage: 'Handler failed' });
 
       expect(feedbackHook).toHaveBeenCalledWith(
         expect.objectContaining({
           status: 'error',
-          message: 'Handler failed',
+          errorMessage: 'Handler failed',
         })
       );
     });
@@ -122,17 +118,14 @@ describe('TelemetryReporter', () => {
     });
 
     it('should handle telemetry URL errors gracefully', async () => {
-      const mockAxiosInstance: MockAxiosInstance = {
-        post: jest.fn().mockRejectedValue(new Error('Network error')),
-      };
-      mockedAxios.create.mockReturnValue(mockAxiosInstance as unknown as AxiosInstance);
-
+      mockedAxios.post.mockRejectedValue(new Error('Network error'));
       const reporter = new TelemetryReporter(
         true,
         'https://telemetry.test.com',
         undefined,
         'ext-id',
-        '1.0.0'
+        '1.0.0',
+        'secret'
       );
 
       // Should not throw

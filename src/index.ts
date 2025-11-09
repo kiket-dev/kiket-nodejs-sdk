@@ -17,6 +17,7 @@ export type {
   SDKConfig,
   ExtensionManifest,
   TelemetryRecord,
+  TelemetryExtras,
   FeedbackHook,
   KiketClient,
   RequestOptions,

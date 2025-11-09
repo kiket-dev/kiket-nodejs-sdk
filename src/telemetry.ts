@@ -1,14 +1,15 @@
 /**
  * Telemetry reporter for SDK usage metrics.
  */
-import axios, { AxiosInstance } from 'axios';
-import { TelemetryRecord, FeedbackHook } from './types';
+import axios from 'axios';
+import { TelemetryRecord, FeedbackHook, TelemetryExtras } from './types';
 
 /**
  * Telemetry reporter implementation.
  */
 export class TelemetryReporter {
-  private axios?: AxiosInstance;
+  private endpoint?: string;
+  private apiKey?: string;
   private enabled: boolean;
   private feedbackHook?: FeedbackHook;
   private extensionId?: string;
@@ -19,25 +20,18 @@ export class TelemetryReporter {
     telemetryUrl?: string,
     feedbackHook?: FeedbackHook,
     extensionId?: string,
-    extensionVersion?: string
+    extensionVersion?: string,
+    extensionApiKey?: string
   ) {
     // Check opt-out environment variable
-    const optOut = process.env.KIKET_SDK_TELEMETRY_OPTOUT === '1';
+    const optOut = (process.env.KIKET_SDK_TELEMETRY_OPTOUT || '').toLowerCase() === '1';
     this.enabled = enabled && !optOut;
 
     this.feedbackHook = feedbackHook;
     this.extensionId = extensionId;
     this.extensionVersion = extensionVersion;
-
-    if (telemetryUrl) {
-      this.axios = axios.create({
-        baseURL: telemetryUrl,
-        timeout: 5000,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-    }
+    this.endpoint = this.resolveEndpoint(telemetryUrl);
+    this.apiKey = extensionApiKey;
   }
 
   async record(
@@ -45,7 +39,7 @@ export class TelemetryReporter {
     version: string,
     status: 'ok' | 'error',
     durationMs: number,
-    message?: string
+    extras?: TelemetryExtras
   ): Promise<void> {
     if (!this.enabled) {
       return;
@@ -56,7 +50,10 @@ export class TelemetryReporter {
       version,
       status,
       durationMs,
-      message,
+      errorMessage: extras?.errorMessage,
+      message: extras?.errorMessage,
+      errorClass: extras?.errorClass,
+      metadata: extras?.metadata ?? {},
       extensionId: this.extensionId,
       extensionVersion: this.extensionVersion,
       timestamp: new Date().toISOString(),
@@ -72,13 +69,48 @@ export class TelemetryReporter {
     }
 
     // Send to telemetry URL (if configured)
-    if (this.axios) {
+    if (this.endpoint) {
       try {
-        await this.axios.post('/telemetry', record);
+        const headers: Record<string, string> = {};
+        if (this.apiKey) {
+          headers['X-Kiket-API-Key'] = this.apiKey;
+        }
+        await axios.post(this.endpoint, this.buildPayload(record), {
+          headers,
+          timeout: 5000,
+        });
       } catch (error) {
         // Best-effort, don't fail the handler
         console.warn('Failed to send telemetry:', error);
       }
     }
+  }
+
+  private resolveEndpoint(url?: string): string | undefined {
+    if (!url) {
+      return undefined;
+    }
+    const trimmed = url.replace(/\/+$/, '');
+    if (trimmed.endsWith('/telemetry')) {
+      return trimmed;
+    }
+    return `${trimmed}/telemetry`;
+  }
+
+  private buildPayload(record: TelemetryRecord) {
+    const metadata = { ...(record.metadata ?? {}) };
+
+    return {
+      event: record.event,
+      version: record.version,
+      status: record.status,
+      duration_ms: Math.round(record.durationMs),
+      timestamp: record.timestamp,
+      extension_id: record.extensionId,
+      extension_version: record.extensionVersion,
+      error_message: record.errorMessage ?? record.message,
+      error_class: record.errorClass,
+      metadata,
+    };
   }
 }

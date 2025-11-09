@@ -41,7 +41,8 @@ export class KiketSDK {
       this.config.telemetryUrl,
       this.config.feedbackHook,
       this.config.extensionId,
-      this.config.extensionVersion
+      this.config.extensionVersion,
+      this.config.extensionApiKey
     );
     this.app = this.buildApp();
   }
@@ -201,13 +202,10 @@ export class KiketSDK {
           const endTime = process.hrtime.bigint();
           const durationMs = Number(endTime - startTime) / 1_000_000;
 
-          await this.telemetry.record(
-            event,
-            metadata.version,
-            'error',
-            durationMs,
-            error instanceof Error ? error.message : String(error)
-          );
+          await this.telemetry.record(event, metadata.version, 'error', durationMs, {
+            errorMessage: error instanceof Error ? error.message : String(error),
+            errorClass: error instanceof Error ? error.constructor.name : undefined,
+          });
 
           throw error;
         } finally {
@@ -268,6 +266,11 @@ export class KiketSDK {
     const resolvedExtensionId = config.extensionId || manifest?.id;
     const resolvedExtensionVersion = config.extensionVersion || manifest?.version;
 
+    const resolvedTelemetryUrl =
+      config.telemetryUrl ||
+      process.env.KIKET_SDK_TELEMETRY_URL ||
+      `${resolvedBaseUrl}/api/v1/ext`;
+
     return {
       webhookSecret: resolvedWebhookSecret,
       workspaceToken: resolvedWorkspaceToken,
@@ -277,7 +280,7 @@ export class KiketSDK {
       extensionVersion: resolvedExtensionVersion,
       telemetryEnabled: config.telemetryEnabled ?? true,
       feedbackHook: config.feedbackHook,
-      telemetryUrl: config.telemetryUrl || process.env.KIKET_SDK_TELEMETRY_URL,
+      telemetryUrl: resolvedTelemetryUrl,
       extensionApiKey: resolvedExtensionApiKey,
     };
   }
