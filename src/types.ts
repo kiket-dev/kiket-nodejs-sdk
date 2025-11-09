@@ -166,6 +166,8 @@ export interface ExtensionEndpoints {
   getMetadata(): Promise<unknown>;
   /** Access custom data API */
   customData(projectId: number | string): CustomDataClient;
+  /** Access workflow SLA events */
+  slaEvents(projectId: number | string): SlaEventsClient;
 }
 
 /**
@@ -206,6 +208,34 @@ export interface CustomDataClient {
     record: Record<string, unknown>
   ): Promise<CustomDataRecordResponse>;
   delete(moduleKey: string, table: string, recordId: string | number): Promise<void>;
+}
+
+/**
+ * SLA events client.
+ */
+export interface SlaEventsClient {
+  list(options?: SlaEventsListOptions): Promise<SlaEventsListResponse>;
+}
+
+export interface SlaEventsListOptions {
+  issueId?: string | number;
+  state?: 'imminent' | 'breached' | 'recovered';
+  limit?: number;
+}
+
+export interface SlaEventRecord {
+  id: number | string;
+  issue_id: number | string;
+  project_id: number | string;
+  state: string;
+  triggered_at: string;
+  resolved_at?: string | null;
+  definition?: Record<string, unknown>;
+  metrics?: Record<string, unknown>;
+}
+
+export interface SlaEventsListResponse {
+  data: SlaEventRecord[];
 }
 
 export interface CustomDataListOptions {

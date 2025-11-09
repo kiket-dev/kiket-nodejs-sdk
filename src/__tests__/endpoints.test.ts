@@ -84,4 +84,17 @@ describe('KiketEndpoints', () => {
       );
     });
   });
+
+  describe('slaEvents', () => {
+    it('returns SLA events client bound to project', async () => {
+      mockClient.get.mockResolvedValue({ data: [] });
+
+      const slaClient = endpoints.slaEvents('proj-9');
+      await slaClient.list({ state: 'imminent' });
+
+      expect(mockClient.get).toHaveBeenCalledWith('/ext/sla/events', {
+        params: expect.objectContaining({ project_id: 'proj-9', state: 'imminent' }),
+      });
+    });
+  });
 });

@@ -89,6 +89,34 @@ sdk.webhook('issue.created', 'v1')(async (payload, context) => {
 });
 ```
 
+### SLA Alert Stream
+
+Listen for `workflow.sla_status` webhooks and enrich the alert with the REST helper:
+
+```typescript
+sdk.webhook('workflow.sla_status', 'v1')(async (payload, context) => {
+  const projectId = payload.issue.project_id;
+
+  const events = await context.endpoints.slaEvents(projectId).list({
+    state: 'imminent',
+    limit: 5,
+  });
+
+  if (!events.data.length) {
+    return { ok: true };
+  }
+
+  const first = events.data[0];
+  await context.endpoints.notify(
+    'SLA warning',
+    `Issue #${first.issue_id} is ${first.state} for ${first.definition?.status}`,
+    'warning'
+  );
+
+  return { acknowledged: true };
+});
+```
+
 ## Telemetry & Feedback Hooks
 
 Every handler invocation emits an opt-in telemetry record containing the event name, version, duration, and status (`ok` / `error`). Enable or customise reporting when instantiating the SDK:

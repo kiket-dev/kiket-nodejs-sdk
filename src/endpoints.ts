@@ -1,9 +1,16 @@
 /**
  * High-level extension endpoints.
  */
-import { ExtensionEndpoints, ExtensionSecretManager, KiketClient, CustomDataClient } from './types';
+import {
+  ExtensionEndpoints,
+  ExtensionSecretManager,
+  KiketClient,
+  CustomDataClient,
+  SlaEventsClient,
+} from './types';
 import { KiketSecretManager } from './secrets';
 import { KiketCustomDataClient } from './custom_data';
+import { KiketSlaEventsClient } from './sla';
 
 /**
  * Extension endpoints implementation.
@@ -42,5 +49,9 @@ export class KiketEndpoints implements ExtensionEndpoints {
 
   customData(projectId: number | string): CustomDataClient {
     return new KiketCustomDataClient(this.client, projectId);
+  }
+
+  slaEvents(projectId: number | string): SlaEventsClient {
+    return new KiketSlaEventsClient(this.client, projectId);
   }
 }

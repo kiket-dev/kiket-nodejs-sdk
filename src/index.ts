@@ -27,6 +27,15 @@ export type {
   HandlerRegistry,
 } from './types';
 
+// Notifications
+export type {
+  NotificationRequest,
+  NotificationResponse,
+  ChannelValidationRequest,
+  ChannelValidationResponse,
+} from './notifications';
+export { validateNotificationRequest } from './notifications';
+
 // Auth utilities
 export { verifySignature, generateSignature, AuthenticationError } from './auth';
 
@@ -36,6 +45,7 @@ export { KiketHttpClient, KiketSDKError } from './client';
 // Endpoints
 export { KiketEndpoints } from './endpoints';
 export { KiketCustomDataClient } from './custom_data';
+export { KiketSlaEventsClient } from './sla';
 
 // Secrets
 export { KiketSecretManager } from './secrets';
