@@ -1,5 +1,5 @@
 {
-  "name": "@kiket-dev/kiket-nodejs-sdk",
+  "name": "@kiket-dev/sdk",
   "version": "0.1.0",
   "description": "Official TypeScript/Node.js SDK for building Kiket extensions",
   "main": "dist/index.js",
@@ -23,10 +23,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kiket-dev/kiket-nodejs-sdk.git"
+    "url": "https://github.com/kiket-dev/kiket.git",
+    "directory": "sdk/nodejs"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/@kiket-dev"
+    "registry": "https://npm.pkg.github.com/"
   },
   "engines": {
     "node": ">=18.0.0"

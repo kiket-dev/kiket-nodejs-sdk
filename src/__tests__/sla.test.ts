@@ -21,7 +21,7 @@ describe('KiketSlaEventsClient', () => {
     const client = new KiketSlaEventsClient(mockClient, 42);
     await client.list({ state: 'breached', issueId: '77', limit: 5 });
 
-    expect(mockClient.get).toHaveBeenCalledWith('/ext/sla/events', {
+    expect(mockClient.get).toHaveBeenCalledWith('/api/v1/ext/sla/events', {
       params: expect.objectContaining({
         project_id: '42',
         state: 'breached',

@@ -180,6 +180,8 @@ export interface ExtensionEndpoints {
   customData(projectId: number | string): CustomDataClient;
   /** Access workflow SLA events */
   slaEvents(projectId: number | string): SlaEventsClient;
+  /** Inspect current rate limit window */
+  rateLimit(): Promise<RateLimitInfo>;
 }
 
 /**
@@ -196,6 +198,20 @@ export interface ExtensionSecretManager {
   list(): Promise<string[]>;
   /** Rotate a secret (delete old, set new) */
   rotate(key: string, newValue: string): Promise<void>;
+}
+
+/**
+ * Rate limit metadata returned by `/api/v1/ext/rate_limit`.
+ */
+export interface RateLimitInfo {
+  /** Maximum requests allowed in the current window */
+  limit: number;
+  /** Remaining requests in the current window */
+  remaining: number;
+  /** Window size in seconds */
+  windowSeconds: number;
+  /** Seconds until the window resets */
+  resetIn: number;
 }
 
 /**

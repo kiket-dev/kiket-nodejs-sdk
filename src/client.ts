@@ -2,6 +2,7 @@
  * HTTP client for Kiket API.
  */
 import axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
+import pkg from '../package.json';
 import { KiketClient, RequestOptions, Headers } from './types';
 
 /**
@@ -17,6 +18,8 @@ export class KiketSDKError extends Error {
 /**
  * HTTP client implementation for Kiket API.
  */
+const USER_AGENT = `${pkg.name}/${pkg.version}`;
+
 export class KiketHttpClient implements KiketClient {
   private axios: AxiosInstance;
   private workspaceToken?: string;
@@ -38,7 +41,7 @@ export class KiketHttpClient implements KiketClient {
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'kiket-sdk-nodejs/0.1.0',
+        'User-Agent': USER_AGENT,
       },
     });
 

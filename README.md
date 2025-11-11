@@ -7,6 +7,7 @@
 - 🔌 **Webhook decorators** – define handlers with `sdk.webhook("issue.created", "v1")`.
 - 🔐 **Transparent authentication** – HMAC verification for inbound payloads, workspace-token client for outbound calls.
 - 🔑 **Secret manager** – list, fetch, rotate, and delete extension secrets stored in Google Secret Manager.
+- 📉 **Rate-limit helper** – introspect `/api/v1/ext/rate_limit` so long-running jobs can throttle themselves.
 - 🌐 **Built-in Express app** – serve extension webhooks locally or in production without extra wiring.
 - 🧪 **Testing utilities** – test helpers, signed-payload factories, and mock utilities to keep extensions reliable.
 - 🔁 **Version-aware routing** – register multiple handlers per event (`sdk.webhook(..., "v2")`) and propagate version headers on outbound calls.
@@ -117,12 +118,33 @@ sdk.webhook('workflow.sla_status', 'v1')(async (payload, context) => {
 });
 ```
 
+### Rate-Limit Helper
+
+Check the current extension window before enqueueing expensive jobs:
+
+```typescript
+sdk.webhook('automation.triggered', 'v1')(async (_payload, context) => {
+  const limits = await context.endpoints.rateLimit();
+
+  if (limits.remaining < 10) {
+    await context.endpoints.logEvent('rate_limited', {
+      remaining: limits.remaining,
+      windowSeconds: limits.windowSeconds,
+    });
+    return { deferred: true, resetIn: limits.resetIn };
+  }
+
+  // Safe to continue
+  return { processed: true };
+});
+```
+
 ## Telemetry & Feedback Hooks
 
 Every handler invocation emits an opt-in telemetry record containing the event name, version, duration, and status (`ok` / `error`). Enable or customise reporting when instantiating the SDK:
 
 ```typescript
-import { KiketSDK, TelemetryRecord } from '@kiket/sdk';
+import { KiketSDK, TelemetryRecord } from '@kiket-dev/sdk';
 
 async function feedback(record: TelemetryRecord): Promise<void> {
   console.log(
@@ -140,6 +162,10 @@ const sdk = new KiketSDK({
 ```
 
 Set `KIKET_SDK_TELEMETRY_OPTOUT=1` to disable reporting entirely. When `telemetryUrl` is provided (or the environment variable is set), the SDK will POST telemetry JSON to that endpoint with best-effort retry; failures are logged and never crash handlers.
+
+## Delivery Payload Reference
+
+Webhook payloads include runtime tokens, injected secrets, and API metadata. Review the [extension delivery contract](https://docs.kiket.dev/extensions/delivery-contract/) for the complete schema and response rules, then mirror the structure in your handlers for reliable diagnostics.
 
 ## Testing
 

@@ -7,10 +7,13 @@ import {
   KiketClient,
   CustomDataClient,
   SlaEventsClient,
+  RateLimitInfo,
 } from './types';
 import { KiketSecretManager } from './secrets';
 import { KiketCustomDataClient } from './custom_data';
 import { KiketSlaEventsClient } from './sla';
+
+const API_PREFIX = '/api/v1';
 
 /**
  * Extension endpoints implementation.
@@ -31,7 +34,7 @@ export class KiketEndpoints implements ExtensionEndpoints {
       throw new Error('Extension ID required for logging events');
     }
 
-    await this.client.post(`/extensions/${this.extensionId}/events`, {
+    await this.client.post(`${API_PREFIX}/extensions/${this.extensionId}/events`, {
       event,
       version: this.eventVersion,
       data,
@@ -44,7 +47,7 @@ export class KiketEndpoints implements ExtensionEndpoints {
       throw new Error('Extension ID required for getting metadata');
     }
 
-    return await this.client.get(`/extensions/${this.extensionId}`);
+    return await this.client.get(`${API_PREFIX}/extensions/${this.extensionId}`);
   }
 
   customData(projectId: number | string): CustomDataClient {
@@ -54,4 +57,25 @@ export class KiketEndpoints implements ExtensionEndpoints {
   slaEvents(projectId: number | string): SlaEventsClient {
     return new KiketSlaEventsClient(this.client, projectId);
   }
+
+  async rateLimit(): Promise<RateLimitInfo> {
+    const response = await this.client.get<{ rate_limit: RateLimitApiResponse }>(
+      `${API_PREFIX}/ext/rate_limit`
+    );
+
+    const payload = response.rate_limit;
+    return {
+      limit: payload.limit,
+      remaining: payload.remaining,
+      windowSeconds: payload.window_seconds,
+      resetIn: payload.reset_in,
+    };
+  }
+}
+
+interface RateLimitApiResponse {
+  limit: number;
+  remaining: number;
+  window_seconds: number;
+  reset_in: number;
 }

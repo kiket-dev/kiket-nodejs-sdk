@@ -25,7 +25,7 @@ describe('KiketCustomDataClient', () => {
     });
 
     expect(mockClient.get).toHaveBeenCalledWith(
-      '/ext/custom_data/com.example.crm.contacts/records',
+      '/api/v1/ext/custom_data/com.example.crm.contacts/records',
       {
         params: expect.objectContaining({
           project_id: '42',
@@ -43,7 +43,7 @@ describe('KiketCustomDataClient', () => {
     await client.create('com.example.crm.contacts', 'records', { email: 'lead@example.com' });
 
     expect(mockClient.post).toHaveBeenCalledWith(
-      '/ext/custom_data/com.example.crm.contacts/records',
+      '/api/v1/ext/custom_data/com.example.crm.contacts/records',
       { record: { email: 'lead@example.com' } },
       {
         params: { project_id: 'proj-1' },

@@ -28,7 +28,7 @@ describe('KiketEndpoints', () => {
       await endpoints.logEvent('issue.created', { summary: 'Test Issue' });
 
       expect(mockClient.post).toHaveBeenCalledWith(
-        '/extensions/test-extension/events',
+        '/api/v1/extensions/test-extension/events',
         expect.objectContaining({
           event: 'issue.created',
           version: 'v1',
@@ -55,7 +55,7 @@ describe('KiketEndpoints', () => {
       const result = await endpoints.getMetadata();
 
       expect(result).toEqual(metadata);
-      expect(mockClient.get).toHaveBeenCalledWith('/extensions/test-extension');
+      expect(mockClient.get).toHaveBeenCalledWith('/api/v1/extensions/test-extension');
     });
 
     it('should throw error when extension ID not provided', async () => {
@@ -79,7 +79,7 @@ describe('KiketEndpoints', () => {
       await customData.list('com.example.module', 'records');
 
       expect(mockClient.get).toHaveBeenCalledWith(
-        '/ext/custom_data/com.example.module/records',
+        '/api/v1/ext/custom_data/com.example.module/records',
         { params: { project_id: '7' } }
       );
     });
@@ -92,9 +92,32 @@ describe('KiketEndpoints', () => {
       const slaClient = endpoints.slaEvents('proj-9');
       await slaClient.list({ state: 'imminent' });
 
-      expect(mockClient.get).toHaveBeenCalledWith('/ext/sla/events', {
+      expect(mockClient.get).toHaveBeenCalledWith('/api/v1/ext/sla/events', {
         params: expect.objectContaining({ project_id: 'proj-9', state: 'imminent' }),
       });
+    });
+  });
+
+  describe('rateLimit', () => {
+    it('returns rate limit metadata', async () => {
+      mockClient.get.mockResolvedValue({
+        rate_limit: {
+          limit: 600,
+          remaining: 598,
+          window_seconds: 60,
+          reset_in: 25,
+        },
+      });
+
+      const result = await endpoints.rateLimit();
+
+      expect(result).toEqual({
+        limit: 600,
+        remaining: 598,
+        windowSeconds: 60,
+        resetIn: 25,
+      });
+      expect(mockClient.get).toHaveBeenCalledWith('/api/v1/ext/rate_limit');
     });
   });
 });

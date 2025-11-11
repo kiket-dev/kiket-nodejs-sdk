@@ -1,6 +1,6 @@
 import { KiketClient, SlaEventsClient, SlaEventsListOptions, SlaEventsListResponse } from './types';
 
-const buildPath = '/ext/sla/events';
+const SLA_PATH = '/api/v1/ext/sla/events';
 
 const buildParams = (
   projectId: string,
@@ -31,7 +31,7 @@ export class KiketSlaEventsClient implements SlaEventsClient {
   }
 
   async list(options: SlaEventsListOptions = {}): Promise<SlaEventsListResponse> {
-    return this.client.get(buildPath, {
+    return this.client.get(SLA_PATH, {
       params: buildParams(this.projectId, options),
     });
   }

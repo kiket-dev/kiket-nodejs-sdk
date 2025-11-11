@@ -1,9 +1,17 @@
-import { KiketClient, CustomDataClient, CustomDataListOptions, CustomDataListResponse, CustomDataRecordResponse } from './types';
+import {
+  KiketClient,
+  CustomDataClient,
+  CustomDataListOptions,
+  CustomDataListResponse,
+  CustomDataRecordResponse,
+} from './types';
+
+const API_PREFIX = '/api/v1';
 
 const encodeSegment = (value: string) => encodeURIComponent(value);
 
 function buildPath(moduleKey: string, table: string, recordId?: string | number): string {
-  const base = `/ext/custom_data/${encodeSegment(moduleKey)}/${encodeSegment(table)}`;
+  const base = `${API_PREFIX}/ext/custom_data/${encodeSegment(moduleKey)}/${encodeSegment(table)}`;
   return recordId !== undefined ? `${base}/${recordId}` : base;
 }
 

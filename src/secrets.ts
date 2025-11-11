@@ -3,6 +3,8 @@
  */
 import { ExtensionSecretManager, KiketClient } from './types';
 
+const API_PREFIX = '/api/v1';
+
 /**
  * Secret manager implementation using Kiket API.
  */
@@ -19,7 +21,7 @@ export class KiketSecretManager implements ExtensionSecretManager {
 
     try {
       const response = await this.client.get<{ value: string }>(
-        `/extensions/${this.extensionId}/secrets/${key}`
+        `${API_PREFIX}/extensions/${this.extensionId}/secrets/${key}`
       );
       return response.value;
     } catch (error) {
@@ -36,7 +38,7 @@ export class KiketSecretManager implements ExtensionSecretManager {
       throw new Error('Extension ID required for secret operations');
     }
 
-    await this.client.post(`/extensions/${this.extensionId}/secrets/${key}`, {
+    await this.client.post(`${API_PREFIX}/extensions/${this.extensionId}/secrets/${key}`, {
       value,
     });
   }
@@ -46,7 +48,7 @@ export class KiketSecretManager implements ExtensionSecretManager {
       throw new Error('Extension ID required for secret operations');
     }
 
-    await this.client.delete(`/extensions/${this.extensionId}/secrets/${key}`);
+    await this.client.delete(`${API_PREFIX}/extensions/${this.extensionId}/secrets/${key}`);
   }
 
   async list(): Promise<string[]> {
@@ -55,7 +57,7 @@ export class KiketSecretManager implements ExtensionSecretManager {
     }
 
     const response = await this.client.get<{ keys: string[] }>(
-      `/extensions/${this.extensionId}/secrets`
+      `${API_PREFIX}/extensions/${this.extensionId}/secrets`
     );
     return response.keys;
   }
