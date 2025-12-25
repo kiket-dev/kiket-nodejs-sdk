@@ -24,6 +24,16 @@ export type {
   ExtensionEndpoints,
   ExtensionSecretManager,
   CustomDataClient,
+  IntakeFormsClient,
+  IntakeForm,
+  IntakeFormField,
+  IntakeSubmission,
+  IntakeFormStats,
+  IntakeFormListOptions,
+  IntakeFormListResponse,
+  IntakeSubmissionListOptions,
+  IntakeSubmissionListResponse,
+  IntakeSubmissionCreateOptions,
   HandlerMetadata,
   HandlerRegistry,
 } from './types';
@@ -47,6 +57,7 @@ export { KiketHttpClient, KiketSDKError } from './client';
 export { KiketEndpoints } from './endpoints';
 export { KiketCustomDataClient } from './custom_data';
 export { KiketSlaEventsClient } from './sla';
+export { KiketIntakeFormsClient } from './intake_forms';
 
 // Secrets
 export { KiketSecretManager } from './secrets';

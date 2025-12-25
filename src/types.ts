@@ -180,6 +180,8 @@ export interface ExtensionEndpoints {
   customData(projectId: number | string): CustomDataClient;
   /** Access workflow SLA events */
   slaEvents(projectId: number | string): SlaEventsClient;
+  /** Access intake forms API */
+  intakeForms(projectId: number | string): IntakeFormsClient;
   /** Inspect current rate limit window */
   rateLimit(): Promise<RateLimitInfo>;
 }
@@ -277,6 +279,120 @@ export interface CustomDataListResponse {
 
 export interface CustomDataRecordResponse {
   data: Record<string, unknown>;
+}
+
+/**
+ * Intake form field definition.
+ */
+export interface IntakeFormField {
+  key: string;
+  label: string;
+  fieldType: string;
+  required: boolean;
+  options?: string[];
+  placeholder?: string;
+  helpText?: string;
+}
+
+/**
+ * Intake form definition.
+ */
+export interface IntakeForm {
+  id: number;
+  key: string;
+  name: string;
+  description?: string;
+  active: boolean;
+  public: boolean;
+  fields: IntakeFormField[];
+  formUrl?: string;
+  embedAllowed: boolean;
+  submissionsCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Intake submission.
+ */
+export interface IntakeSubmission {
+  id: number;
+  intakeFormId: number;
+  status: string;
+  data: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  submittedByEmail?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Intake form statistics.
+ */
+export interface IntakeFormStats {
+  totalSubmissions: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  converted: number;
+  period?: string;
+}
+
+/**
+ * Options for listing intake forms.
+ */
+export interface IntakeFormListOptions {
+  active?: boolean;
+  publicOnly?: boolean;
+  limit?: number;
+}
+
+/**
+ * Response from listing intake forms.
+ */
+export interface IntakeFormListResponse {
+  data: IntakeForm[];
+}
+
+/**
+ * Options for listing submissions.
+ */
+export interface IntakeSubmissionListOptions {
+  status?: string;
+  limit?: number;
+  since?: Date | string;
+}
+
+/**
+ * Response from listing submissions.
+ */
+export interface IntakeSubmissionListResponse {
+  data: IntakeSubmission[];
+}
+
+/**
+ * Options for creating a submission.
+ */
+export interface IntakeSubmissionCreateOptions {
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Intake forms client interface.
+ */
+export interface IntakeFormsClient {
+  list(options?: IntakeFormListOptions): Promise<IntakeFormListResponse>;
+  get(formKey: string): Promise<IntakeForm>;
+  publicUrl(form: IntakeForm): string | null;
+  listSubmissions(formKey: string, options?: IntakeSubmissionListOptions): Promise<IntakeSubmissionListResponse>;
+  getSubmission(formKey: string, submissionId: string | number): Promise<IntakeSubmission>;
+  createSubmission(formKey: string, data: Record<string, unknown>, options?: IntakeSubmissionCreateOptions): Promise<IntakeSubmission>;
+  approveSubmission(formKey: string, submissionId: string | number, notes?: string): Promise<IntakeSubmission>;
+  rejectSubmission(formKey: string, submissionId: string | number, notes?: string): Promise<IntakeSubmission>;
+  stats(formKey: string, period?: string): Promise<IntakeFormStats>;
 }
 
 /**

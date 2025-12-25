@@ -7,11 +7,13 @@ import {
   KiketClient,
   CustomDataClient,
   SlaEventsClient,
+  IntakeFormsClient,
   RateLimitInfo,
 } from './types';
 import { KiketSecretManager } from './secrets';
 import { KiketCustomDataClient } from './custom_data';
 import { KiketSlaEventsClient } from './sla';
+import { KiketIntakeFormsClient } from './intake_forms';
 
 const API_PREFIX = '/api/v1';
 
@@ -56,6 +58,10 @@ export class KiketEndpoints implements ExtensionEndpoints {
 
   slaEvents(projectId: number | string): SlaEventsClient {
     return new KiketSlaEventsClient(this.client, projectId);
+  }
+
+  intakeForms(projectId: number | string): IntakeFormsClient {
+    return new KiketIntakeFormsClient(this.client, projectId);
   }
 
   async rateLimit(): Promise<RateLimitInfo> {
