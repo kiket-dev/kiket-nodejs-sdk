@@ -125,9 +125,18 @@ export class AuditClient {
 
   /**
    * Get the blockchain proof for a specific audit record.
+   * @param recordId - The ID of the audit record
+   * @param recordType - Type of record ("AuditLog" or "AIAuditLog"), defaults to "AuditLog"
    */
-  async getProof(recordId: number): Promise<BlockchainProof> {
-    const response = await this.httpClient.get(`/api/v1/audit/records/${recordId}/proof`);
+  async getProof(
+    recordId: number,
+    recordType: 'AuditLog' | 'AIAuditLog' = 'AuditLog'
+  ): Promise<BlockchainProof> {
+    const params = recordType !== 'AuditLog' ? { record_type: recordType } : {};
+    const response = await this.httpClient.get(
+      `/api/v1/audit/records/${recordId}/proof`,
+      params
+    );
     return (await response.json()) as BlockchainProof;
   }
 
