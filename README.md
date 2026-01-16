@@ -280,7 +280,82 @@ interface HandlerContext {
   extensionId?: string;                   // Extension identifier
   extensionVersion?: string;              // Extension version
   secrets: ExtensionSecretManager;        // Secret manager
+  secret(key: string): string | undefined; // Secret helper with payload-first fallback
+  auth: {
+    runtimeToken?: string;                // Per-invocation API token
+    tokenType?: string;                   // Typically "runtime"
+    expiresAt?: string;                   // Token expiration timestamp
+    scopes: string[];                     // Granted API scopes
+  };
 }
+```
+
+### Secret Helper
+
+The `secret()` method provides a simple way to retrieve secrets with automatic fallback:
+
+```typescript
+// Checks payload secrets first (per-org config), falls back to ENV
+const slackToken = context.secret('SLACK_BOT_TOKEN');
+
+// Example usage
+sdk.webhook('issue.created', 'v1')(async (payload, context) => {
+  const apiKey = context.secret('API_KEY');
+  if (!apiKey) {
+    throw new Error('API_KEY not configured');
+  }
+  // Use apiKey...
+  return { ok: true };
+});
+```
+
+The lookup order is:
+1. **Payload secrets** (per-org configuration from `payload["secrets"]`)
+2. **Environment variables** (extension defaults via `process.env`)
+
+This allows organizations to override extension defaults with their own credentials.
+
+### Runtime Token Authentication
+
+The Kiket platform sends a per-invocation `runtime_token` in each webhook payload. This token is automatically extracted and used for all API calls made through `context.client` and `context.endpoints`. The runtime token provides organization-scoped access and is preferred over static tokens.
+
+```typescript
+sdk.webhook('issue.created', 'v1')(async (payload, context) => {
+  // Access authentication context
+  console.log(`Token expires at: ${context.auth.expiresAt}`);
+  console.log(`Scopes: ${context.auth.scopes.join(', ')}`);
+
+  // API calls automatically use the runtime token
+  await context.endpoints.logEvent('processed', { ok: true });
+
+  return { ok: true };
+});
+```
+
+### Scope Checking
+
+Extensions can declare required scopes when registering handlers. The SDK will automatically check scopes before invoking the handler and return a 403 error if insufficient.
+
+```typescript
+// Declare required scopes at registration time
+sdk.register('issue.created', handler, 'v1', ['issues.read', 'issues.write']);
+
+// Or using the decorator
+sdk.webhook('issue.created', 'v1', ['issues.read', 'issues.write'])(async (payload, context) => {
+  // Handler only executes if scopes are present
+  await context.endpoints.logEvent('issue.processed', { id: payload.issue.id });
+  return { ok: true };
+});
+
+// Check scopes dynamically within the handler
+sdk.webhook('workflow.triggered', 'v1')(async (payload, context) => {
+  // Throws ScopeError if scopes are missing
+  context.requireScopes('workflows.execute', 'custom_data.write');
+
+  // Continue with scope-protected operations
+  await context.endpoints.customData(projectId).create(...);
+  return { ok: true };
+});
 ```
 
 ### ExtensionEndpoints
