@@ -16,6 +16,24 @@ export class KiketSDKError extends Error {
 }
 
 /**
+ * Error thrown when required scopes are not present.
+ */
+export class ScopeError extends Error {
+  public readonly requiredScopes: string[];
+  public readonly availableScopes: string[];
+  public readonly missingScopes: string[];
+
+  constructor(requiredScopes: string[], availableScopes: string[]) {
+    const missing = requiredScopes.filter(s => !availableScopes.includes(s) && !availableScopes.includes('*'));
+    super(`Insufficient scopes: missing ${missing.join(', ')}`);
+    this.name = 'ScopeError';
+    this.requiredScopes = requiredScopes;
+    this.availableScopes = availableScopes;
+    this.missingScopes = missing;
+  }
+}
+
+/**
  * HTTP client implementation for Kiket API.
  */
 const USER_AGENT = `${pkg.name}/${pkg.version}`;
@@ -25,16 +43,19 @@ export class KiketHttpClient implements KiketClient {
   private workspaceToken?: string;
   private eventVersion?: string;
   private extensionApiKey?: string;
+  private runtimeToken?: string;
 
   constructor(
     baseUrl: string,
     workspaceToken?: string,
     eventVersion?: string,
-    extensionApiKey?: string
+    extensionApiKey?: string,
+    runtimeToken?: string
   ) {
     this.workspaceToken = workspaceToken;
     this.eventVersion = eventVersion;
     this.extensionApiKey = extensionApiKey;
+    this.runtimeToken = runtimeToken;
 
     this.axios = axios.create({
       baseURL: baseUrl,
@@ -53,7 +74,10 @@ export class KiketHttpClient implements KiketClient {
       if (this.eventVersion && config.headers) {
         config.headers['X-Kiket-Event-Version'] = this.eventVersion;
       }
-      if (this.extensionApiKey && config.headers) {
+      // Prefer runtime token (per-invocation) over static extension API key
+      if (this.runtimeToken && config.headers) {
+        config.headers['X-Runtime-Token'] = this.runtimeToken;
+      } else if (this.extensionApiKey && config.headers) {
         config.headers['X-Kiket-API-Key'] = this.extensionApiKey;
       }
       return config;

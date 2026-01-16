@@ -1,8 +1,34 @@
 /**
- * HMAC signature verification for webhook payloads.
+ * JWT verification for webhook payloads.
+ * Verifies runtime tokens are signed by Kiket using ES256 (ECDSA P-256).
  */
-import * as crypto from 'crypto';
-import { Headers } from './types';
+import * as jose from 'jose';
+import axios from 'axios';
+
+const ALGORITHM = 'ES256';
+const ISSUER = 'kiket.dev';
+const JWKS_CACHE_TTL = 3600 * 1000; // 1 hour in ms
+
+interface JwksCache {
+  jwks: jose.JSONWebKeySet;
+  fetchedAt: number;
+}
+
+interface JwtPayload {
+  sub: string;
+  org_id?: number;
+  ext_id?: number;
+  proj_id?: number;
+  pi_id?: number;
+  scopes?: string[];
+  src?: string;
+  iss: string;
+  iat: number;
+  exp: number;
+  jti: string;
+}
+
+const jwksCache: Map<string, JwksCache> = new Map();
 
 /**
  * Authentication error.
@@ -15,84 +41,135 @@ export class AuthenticationError extends Error {
 }
 
 /**
- * Verify HMAC signature of a webhook payload.
+ * Verify the runtime token JWT from the payload.
  *
- * @param secret - Webhook secret
- * @param body - Request body (raw bytes)
- * @param headers - Request headers
- * @throws {AuthenticationError} If signature is invalid or missing
+ * @param payload - The webhook payload containing authentication.runtime_token
+ * @param baseUrl - Base URL for fetching JWKS
+ * @returns The decoded JWT payload
+ * @throws {AuthenticationError} If token is invalid or missing
  */
-export function verifySignature(
-  secret: string | undefined,
-  body: Buffer | string,
-  headers: Headers
-): void {
-  if (!secret) {
-    throw new AuthenticationError('Webhook secret not configured');
+export async function verifyRuntimeToken(
+  payload: Record<string, unknown>,
+  baseUrl: string
+): Promise<JwtPayload> {
+  const auth = (payload?.authentication as Record<string, unknown>) || {};
+  const token = auth.runtime_token as string;
+
+  if (!token) {
+    throw new AuthenticationError('Missing runtime_token in payload');
   }
 
-  const signature = headers['x-kiket-signature'] || headers['X-Kiket-Signature'];
-  const timestamp = headers['x-kiket-timestamp'] || headers['X-Kiket-Timestamp'];
+  return decodeJwt(token, baseUrl);
+}
 
-  if (!signature) {
-    throw new AuthenticationError('Missing X-Kiket-Signature header');
-  }
+/**
+ * Decode and verify a JWT token using the public key from JWKS.
+ *
+ * @param token - The JWT token to verify
+ * @param baseUrl - Base URL for fetching JWKS
+ * @returns The decoded payload
+ * @throws {AuthenticationError} If token is invalid
+ */
+export async function decodeJwt(token: string, baseUrl: string): Promise<JwtPayload> {
+  try {
+    const jwks = await fetchJwks(baseUrl);
+    const keySet = jose.createLocalJWKSet(jwks);
 
-  if (!timestamp) {
-    throw new AuthenticationError('Missing X-Kiket-Timestamp header');
-  }
+    const { payload } = await jose.jwtVerify(token, keySet, {
+      algorithms: [ALGORITHM],
+      issuer: ISSUER,
+    });
 
-  // Check timestamp to prevent replay attacks (allow 5 minute window)
-  const now = Math.floor(Date.now() / 1000);
-  const requestTime = parseInt(timestamp, 10);
-
-  if (isNaN(requestTime)) {
-    throw new AuthenticationError('Invalid X-Kiket-Timestamp header');
-  }
-
-  const timeDiff = Math.abs(now - requestTime);
-  if (timeDiff > 300) {
-    throw new AuthenticationError(
-      `Request timestamp too old or too far in future: ${timeDiff}s`
-    );
-  }
-
-  // Compute expected signature
-  const bodyStr = Buffer.isBuffer(body) ? body.toString('utf-8') : body;
-  const payload = `${timestamp}.${bodyStr}`;
-  const expectedSignature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
-
-  // Constant-time comparison to prevent timing attacks
-  const signatureBuffer = Buffer.from(signature, 'utf8');
-  const expectedBuffer = Buffer.from(expectedSignature, 'utf8');
-
-  // Check lengths match before timing-safe comparison
-  if (signatureBuffer.length !== expectedBuffer.length) {
-    throw new AuthenticationError('Invalid signature');
-  }
-
-  if (!crypto.timingSafeEqual(signatureBuffer, expectedBuffer)) {
-    throw new AuthenticationError('Invalid signature');
+    return payload as unknown as JwtPayload;
+  } catch (error) {
+    if (error instanceof jose.errors.JWTExpired) {
+      throw new AuthenticationError('Runtime token has expired');
+    }
+    if (error instanceof jose.errors.JWTClaimValidationFailed) {
+      throw new AuthenticationError(`Invalid token claim: ${error.message}`);
+    }
+    if (error instanceof jose.errors.JWSSignatureVerificationFailed) {
+      throw new AuthenticationError('Invalid token signature');
+    }
+    if (error instanceof AuthenticationError) {
+      throw error;
+    }
+    throw new AuthenticationError(`Invalid token: ${(error as Error).message}`);
   }
 }
 
 /**
- * Generate HMAC signature for a payload (for testing).
+ * Fetch JWKS from the well-known endpoint with caching.
  *
- * @param secret - Webhook secret
- * @param body - Request body
- * @param timestamp - Unix timestamp (defaults to current time)
- * @returns Signature and timestamp
+ * @param baseUrl - Base URL for fetching JWKS
+ * @returns The JWKS response
+ * @throws {AuthenticationError} If JWKS cannot be fetched
  */
-export function generateSignature(
-  secret: string,
-  body: string,
-  timestamp?: number
-): { signature: string; timestamp: string } {
-  const ts = timestamp ?? Math.floor(Date.now() / 1000);
-  const tsStr = ts.toString();
-  const payload = `${tsStr}.${body}`;
-  const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+export async function fetchJwks(baseUrl: string): Promise<jose.JSONWebKeySet> {
+  const cached = jwksCache.get(baseUrl);
 
-  return { signature, timestamp: tsStr };
+  if (cached && Date.now() - cached.fetchedAt < JWKS_CACHE_TTL) {
+    return cached.jwks;
+  }
+
+  const jwksUrl = `${baseUrl.replace(/\/+$/, '')}/.well-known/jwks.json`;
+
+  try {
+    const response = await axios.get<jose.JSONWebKeySet>(jwksUrl, {
+      timeout: 10000,
+    });
+
+    const jwks = response.data;
+    jwksCache.set(baseUrl, { jwks, fetchedAt: Date.now() });
+    return jwks;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new AuthenticationError(`Failed to fetch JWKS: ${error.message}`);
+    }
+    throw new AuthenticationError(`Failed to fetch JWKS: ${(error as Error).message}`);
+  }
+}
+
+/**
+ * Clear the JWKS cache (useful for testing or key rotation).
+ */
+export function clearJwksCache(): void {
+  jwksCache.clear();
+}
+
+/**
+ * Authentication context extracted from JWT.
+ */
+export interface AuthContext {
+  runtimeToken: string;
+  tokenType: string;
+  expiresAt: string | null;
+  scopes: string[];
+  orgId?: number;
+  extId?: number;
+  projId?: number;
+}
+
+/**
+ * Build authentication context from verified JWT payload and raw payload.
+ *
+ * @param jwtPayload - The verified JWT claims
+ * @param rawPayload - The original webhook payload
+ * @returns Authentication context
+ */
+export function buildAuthContext(
+  jwtPayload: JwtPayload,
+  rawPayload: Record<string, unknown>
+): AuthContext {
+  const rawAuth = (rawPayload?.authentication as Record<string, unknown>) || {};
+
+  return {
+    runtimeToken: rawAuth.runtime_token as string,
+    tokenType: 'runtime',
+    expiresAt: jwtPayload.exp ? new Date(jwtPayload.exp * 1000).toISOString() : null,
+    scopes: jwtPayload.scopes || [],
+    orgId: jwtPayload.org_id,
+    extId: jwtPayload.ext_id,
+    projId: jwtPayload.proj_id,
+  };
 }

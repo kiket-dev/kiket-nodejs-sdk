@@ -129,6 +129,178 @@ describe('KiketSDK', () => {
       });
     });
   });
+
+  describe('runtime token authentication', () => {
+    it('should extract authentication context from payload', async () => {
+      const sdk = new KiketSDK({ webhookSecret: secret, workspaceToken });
+
+      let capturedContext: Record<string, unknown> | null = null;
+      const handler = jest.fn().mockImplementation((_payload, context) => {
+        capturedContext = context as Record<string, unknown>;
+        return { ok: true };
+      });
+      sdk.register('test.event', handler, 'v1');
+
+      const payload = {
+        test: 'data',
+        authentication: {
+          runtime_token: 'rt_test_token',
+          token_type: 'runtime',
+          expires_at: '2026-01-16T12:00:00Z',
+          scopes: ['ext.api.read', 'ext.api.write'],
+        },
+        api: {
+          base_url: 'https://custom.kiket.dev',
+        },
+      };
+      const { body, headers } = createSignedRequest(secret, payload);
+
+      const response = await request(sdk.app)
+        .post('/v/1/webhooks/test.event')
+        .set(headers)
+        .send(body);
+
+      expect(response.status).toBe(200);
+      expect(capturedContext).not.toBeNull();
+      expect((capturedContext as Record<string, unknown>).auth).toEqual({
+        runtimeToken: 'rt_test_token',
+        tokenType: 'runtime',
+        expiresAt: '2026-01-16T12:00:00Z',
+        scopes: ['ext.api.read', 'ext.api.write'],
+      });
+    });
+
+    it('should provide empty auth context when no authentication in payload', async () => {
+      const sdk = new KiketSDK({ webhookSecret: secret, workspaceToken });
+
+      let capturedContext: Record<string, unknown> | null = null;
+      const handler = jest.fn().mockImplementation((_payload, context) => {
+        capturedContext = context as Record<string, unknown>;
+        return { ok: true };
+      });
+      sdk.register('test.event', handler, 'v1');
+
+      const payload = { test: 'data' };
+      const { body, headers } = createSignedRequest(secret, payload);
+
+      await request(sdk.app)
+        .post('/v/1/webhooks/test.event')
+        .set(headers)
+        .send(body);
+
+      expect(capturedContext).not.toBeNull();
+      expect((capturedContext as Record<string, unknown>).auth).toEqual({
+        runtimeToken: undefined,
+        tokenType: undefined,
+        expiresAt: undefined,
+        scopes: [],
+      });
+    });
+  });
+
+  describe('scope checking', () => {
+    it('should reject request when required scopes are missing', async () => {
+      const sdk = new KiketSDK({ webhookSecret: secret, workspaceToken });
+
+      const handler = jest.fn().mockResolvedValue({ ok: true });
+      sdk.register('test.event', handler, 'v1', ['ext.api.read', 'ext.secrets.write']);
+
+      const payload = {
+        test: 'data',
+        authentication: {
+          runtime_token: 'rt_test_token',
+          scopes: ['ext.api.read'], // missing ext.secrets.write
+        },
+      };
+      const { body, headers } = createSignedRequest(secret, payload);
+
+      const response = await request(sdk.app)
+        .post('/v/1/webhooks/test.event')
+        .set(headers)
+        .send(body);
+
+      expect(response.status).toBe(403);
+      expect(response.body.error).toBe('Insufficient scopes');
+      expect(response.body.missing_scopes).toEqual(['ext.secrets.write']);
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('should allow request when all required scopes are present', async () => {
+      const sdk = new KiketSDK({ webhookSecret: secret, workspaceToken });
+
+      const handler = jest.fn().mockResolvedValue({ ok: true });
+      sdk.register('test.event', handler, 'v1', ['ext.api.read', 'ext.api.write']);
+
+      const payload = {
+        test: 'data',
+        authentication: {
+          runtime_token: 'rt_test_token',
+          scopes: ['ext.api.read', 'ext.api.write', 'ext.secrets.read'],
+        },
+      };
+      const { body, headers } = createSignedRequest(secret, payload);
+
+      const response = await request(sdk.app)
+        .post('/v/1/webhooks/test.event')
+        .set(headers)
+        .send(body);
+
+      expect(response.status).toBe(200);
+      expect(handler).toHaveBeenCalled();
+    });
+
+    it('should allow request with wildcard scope', async () => {
+      const sdk = new KiketSDK({ webhookSecret: secret, workspaceToken });
+
+      const handler = jest.fn().mockResolvedValue({ ok: true });
+      sdk.register('test.event', handler, 'v1', ['ext.api.read', 'ext.secrets.write']);
+
+      const payload = {
+        test: 'data',
+        authentication: {
+          runtime_token: 'rt_test_token',
+          scopes: ['*'],
+        },
+      };
+      const { body, headers } = createSignedRequest(secret, payload);
+
+      const response = await request(sdk.app)
+        .post('/v/1/webhooks/test.event')
+        .set(headers)
+        .send(body);
+
+      expect(response.status).toBe(200);
+      expect(handler).toHaveBeenCalled();
+    });
+
+    it('should provide requireScopes function in context', async () => {
+      const sdk = new KiketSDK({ webhookSecret: secret, workspaceToken });
+
+      let capturedContext: Record<string, unknown> | null = null;
+      const handler = jest.fn().mockImplementation((_payload, context) => {
+        capturedContext = context as Record<string, unknown>;
+        return { ok: true };
+      });
+      sdk.register('test.event', handler, 'v1');
+
+      const payload = {
+        test: 'data',
+        authentication: {
+          runtime_token: 'rt_test_token',
+          scopes: ['ext.api.read'],
+        },
+      };
+      const { body, headers } = createSignedRequest(secret, payload);
+
+      await request(sdk.app)
+        .post('/v/1/webhooks/test.event')
+        .set(headers)
+        .send(body);
+
+      expect(capturedContext).not.toBeNull();
+      expect(typeof (capturedContext as Record<string, unknown>).requireScopes).toBe('function');
+    });
+  });
 });
 
 function createSignedRequest(

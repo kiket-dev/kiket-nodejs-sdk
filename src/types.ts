@@ -26,6 +26,39 @@ export type WebhookHandler<TPayload = WebhookPayload, TResult = unknown> = (
 ) => Promise<TResult> | TResult;
 
 /**
+ * Authentication context from verified JWT token.
+ * The platform sends per-invocation runtime tokens (JWT) in each webhook request.
+ */
+export interface AuthenticationContext {
+  /** Short-lived runtime token (JWT) for API calls */
+  runtimeToken: string;
+  /** Token type (always "runtime") */
+  tokenType: string;
+  /** Token expiration timestamp (ISO 8601) */
+  expiresAt: string | null;
+  /** Granted scopes from JWT claims */
+  scopes: string[];
+  /** Organization ID from JWT claims */
+  orgId?: number;
+  /** Extension ID from JWT claims */
+  extId?: number;
+  /** Project ID from JWT claims */
+  projId?: number;
+}
+
+/**
+ * Scope checking function type.
+ * Throws ScopeError if required scopes are not present.
+ */
+export type ScopeChecker = (...requiredScopes: string[]) => void;
+
+/**
+ * Secret helper function type.
+ * Checks payload secrets first (per-org), then falls back to ENV.
+ */
+export type SecretHelper = (key: string) => string | undefined;
+
+/**
  * Context passed to webhook handlers.
  */
 export interface HandlerContext {
@@ -45,16 +78,27 @@ export interface HandlerContext {
   extensionId?: string;
   /** Extension version */
   extensionVersion?: string;
-  /** Secret manager */
+  /** Secret manager (async, for remote secrets) */
   secrets: ExtensionSecretManager;
+  /**
+   * Quick secret access: checks payload secrets first (per-org), falls back to ENV.
+   * @example
+   * const token = context.secret('SLACK_BOT_TOKEN');
+   * // Returns payload.secrets['SLACK_BOT_TOKEN'] || process.env.SLACK_BOT_TOKEN
+   */
+  secret: SecretHelper;
+  /** Raw payload secrets (per-org configuration bundled by SecretResolver) */
+  payloadSecrets: Readonly<Record<string, string>>;
+  /** Authentication context with runtime token */
+  auth: AuthenticationContext;
+  /** Check required scopes at runtime. Throws ScopeError if scopes are insufficient. */
+  requireScopes: ScopeChecker;
 }
 
 /**
  * SDK configuration options.
  */
 export interface SDKConfig {
-  /** Webhook HMAC secret for signature verification */
-  webhookSecret?: string;
   /** Workspace token for API authentication */
   workspaceToken?: string;
   /** Extension API key for `/api/v1/ext` endpoints */
@@ -402,6 +446,7 @@ export interface HandlerMetadata {
   event: string;
   version: string;
   handler: WebhookHandler;
+  requiredScopes: string[];
 }
 
 /**

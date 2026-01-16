@@ -9,9 +9,9 @@ import { HandlerRegistry, HandlerMetadata, WebhookHandler } from './types';
 export class KiketHandlerRegistry implements HandlerRegistry {
   private handlers: Map<string, HandlerMetadata> = new Map();
 
-  register(event: string, handler: WebhookHandler, version: string): void {
+  register(event: string, handler: WebhookHandler, version: string, requiredScopes: string[] = []): void {
     const key = this.makeKey(event, version);
-    this.handlers.set(key, { event, version, handler });
+    this.handlers.set(key, { event, version, handler, requiredScopes });
   }
 
   get(event: string, version: string): HandlerMetadata | null {

@@ -36,6 +36,8 @@ export type {
   IntakeSubmissionCreateOptions,
   HandlerMetadata,
   HandlerRegistry,
+  AuthenticationContext,
+  ScopeChecker,
 } from './types';
 
 // Notifications
@@ -51,7 +53,7 @@ export { validateNotificationRequest } from './notifications';
 export { verifySignature, generateSignature, AuthenticationError } from './auth';
 
 // Client
-export { KiketHttpClient, KiketSDKError } from './client';
+export { KiketHttpClient, KiketSDKError, ScopeError } from './client';
 
 // Endpoints
 export { KiketEndpoints } from './endpoints';

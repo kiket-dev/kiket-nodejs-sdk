@@ -35,6 +35,7 @@
   "dependencies": {
     "express": "^4.18.2",
     "axios": "^1.6.0",
+    "jose": "^5.2.0",
     "yaml": "^2.3.4"
   },
   "devDependencies": {

@@ -10,8 +10,8 @@ import {
   Settings,
   TelemetryRecord,
 } from './types';
-import { verifySignature, AuthenticationError } from './auth';
-import { KiketHttpClient, KiketSDKError } from './client';
+import { verifyRuntimeToken, buildAuthContext, AuthenticationError } from './auth';
+import { KiketHttpClient, KiketSDKError, ScopeError } from './client';
 import { KiketEndpoints } from './endpoints';
 import { KiketHandlerRegistry } from './registry';
 import { TelemetryReporter } from './telemetry';
@@ -53,17 +53,24 @@ export class KiketSDK {
 
   /**
    * Register a webhook handler.
+   * @param event Event name
+   * @param handler Handler function
+   * @param version Event version
+   * @param requiredScopes Scopes required to execute this handler
    */
-  register(event: string, handler: WebhookHandler, version: string): void {
-    this.registry.register(event, handler, version);
+  register(event: string, handler: WebhookHandler, version: string, requiredScopes: string[] = []): void {
+    this.registry.register(event, handler, version, requiredScopes);
   }
 
   /**
    * Webhook decorator for registering handlers.
+   * @param event Event name
+   * @param version Event version
+   * @param requiredScopes Scopes required to execute this handler
    */
-  webhook(event: string, version: string): (handler: WebhookHandler) => WebhookHandler {
+  webhook(event: string, version: string, requiredScopes: string[] = []): (handler: WebhookHandler) => WebhookHandler {
     return (handler: WebhookHandler) => {
-      this.register(event, handler, version);
+      this.register(event, handler, version, requiredScopes);
       return handler;
     };
   }
@@ -120,12 +127,16 @@ export class KiketSDK {
       const pathVersion = req.params.version;
 
       try {
-        // Get raw body for signature verification
-        const rawBody = (req as Request & { rawBody?: Buffer }).rawBody || Buffer.from(JSON.stringify(req.body));
+        // Parse payload
+        const payload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
 
-        // Verify signature
+        // Resolve API base URL from payload or config
+        const apiBaseUrl = payload?.api?.base_url || this.config.baseUrl;
+
+        // Verify JWT runtime token
+        let jwtPayload;
         try {
-          verifySignature(this.config.webhookSecret, rawBody, req.headers as Record<string, string>);
+          jwtPayload = await verifyRuntimeToken(payload, apiBaseUrl);
         } catch (error) {
           if (error instanceof AuthenticationError) {
             res.status(401).json({ error: error.message });
@@ -163,18 +174,39 @@ export class KiketSDK {
           return;
         }
 
-        // Parse payload
-        const payload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+        // Build authentication context from verified JWT
+        const authContext = buildAuthContext(jwtPayload, payload);
 
-        // Create client and context
+        // Check required scopes before proceeding
+        const requiredScopes = metadata.requiredScopes || [];
+        if (requiredScopes.length > 0) {
+          const missing = this.checkScopes(requiredScopes, authContext.scopes);
+          if (missing.length > 0) {
+            res.status(403).json({
+              error: 'Insufficient scopes',
+              required_scopes: requiredScopes,
+              missing_scopes: missing,
+            });
+            return;
+          }
+        }
+
+        // Create client with runtime token
         const client = new KiketHttpClient(
-          this.config.baseUrl,
+          apiBaseUrl,
           this.config.workspaceToken,
           metadata.version,
-          this.config.extensionApiKey
+          this.config.extensionApiKey,
+          authContext.runtimeToken
         );
 
         const endpoints = new KiketEndpoints(client, this.config.extensionId, metadata.version);
+
+        // Extract payload secrets for quick access (bundled by SecretResolver)
+        const payloadSecrets = (payload?.secrets || {}) as Record<string, string>;
+
+        // Build secret helper: checks payload secrets first (per-org), falls back to ENV (extension defaults)
+        const secretHelper = this.buildSecretHelper(payloadSecrets);
 
         const context: HandlerContext = {
           event,
@@ -186,6 +218,10 @@ export class KiketSDK {
           extensionId: this.config.extensionId,
           extensionVersion: this.config.extensionVersion,
           secrets: endpoints.secrets,
+          secret: secretHelper,
+          payloadSecrets,
+          auth: authContext,
+          requireScopes: this.buildScopeChecker(authContext.scopes),
         };
 
         // Execute handler with telemetry
@@ -249,10 +285,6 @@ export class KiketSDK {
   private resolveConfig(config: SDKConfig, manifest: ExtensionManifest | null): ResolvedConfig {
     const resolvedBaseUrl = config.baseUrl || process.env.KIKET_BASE_URL || 'https://kiket.dev';
     const resolvedWorkspaceToken = config.workspaceToken || process.env.KIKET_WORKSPACE_TOKEN;
-    const resolvedWebhookSecret =
-      config.webhookSecret ||
-      manifest?.delivery_secret ||
-      process.env.KIKET_WEBHOOK_SECRET;
     const resolvedExtensionApiKey = config.extensionApiKey || process.env.KIKET_EXTENSION_API_KEY;
 
     // Merge settings
@@ -272,7 +304,6 @@ export class KiketSDK {
       `${resolvedBaseUrl}/api/v1/ext`;
 
     return {
-      webhookSecret: resolvedWebhookSecret,
       workspaceToken: resolvedWorkspaceToken,
       baseUrl: resolvedBaseUrl,
       settings: mergedSettings,
@@ -290,13 +321,56 @@ export class KiketSDK {
     const trimmed = value.trim();
     return trimmed || undefined;
   }
+
+  /**
+   * Check if all required scopes are present.
+   * @returns List of missing scopes (empty if all present)
+   */
+  private checkScopes(requiredScopes: string[], availableScopes: string[]): string[] {
+    // Wildcard scope grants all permissions
+    if (availableScopes.includes('*')) {
+      return [];
+    }
+    return requiredScopes.filter(scope => !availableScopes.includes(scope));
+  }
+
+  /**
+   * Build a scope checker function for use in handler context.
+   */
+  private buildScopeChecker(availableScopes: string[]): (...requiredScopes: string[]) => void {
+    return (...requiredScopes: string[]) => {
+      const missing = this.checkScopes(requiredScopes, availableScopes);
+      if (missing.length > 0) {
+        throw new ScopeError(requiredScopes, availableScopes);
+      }
+    };
+  }
+
+  /**
+   * Build a secret helper function for use in handler context.
+   * Checks payload secrets first (per-org configuration bundled by SecretResolver),
+   * then falls back to environment variables (extension defaults).
+   *
+   * @param payloadSecrets Secrets from payload.secrets
+   * @returns Function that resolves secrets by key
+   *
+   * @example
+   * // In handler:
+   * const slackToken = context.secret('SLACK_BOT_TOKEN');
+   * // Returns payload.secrets['SLACK_BOT_TOKEN'] || process.env.SLACK_BOT_TOKEN
+   */
+  private buildSecretHelper(payloadSecrets: Record<string, string>): (key: string) => string | undefined {
+    return (key: string): string | undefined => {
+      // Payload secrets (per-org) take priority over ENV (extension defaults)
+      return payloadSecrets[key] || process.env[key];
+    };
+  }
 }
 
 /**
  * Resolved configuration.
  */
 interface ResolvedConfig {
-  webhookSecret?: string;
   workspaceToken?: string;
   extensionApiKey?: string;
   baseUrl: string;

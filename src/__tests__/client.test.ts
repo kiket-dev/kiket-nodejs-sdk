@@ -158,4 +158,44 @@ describe('KiketHttpClient', () => {
       await expect(client.close()).resolves.toBeUndefined();
     });
   });
+
+  describe('runtime token authentication', () => {
+    it('should inject runtime token header when provided', () => {
+      const mockInstance = createMockAxiosInstance();
+      mockedAxios.create.mockReturnValue(mockInstance as unknown as AxiosInstance);
+
+      new KiketHttpClient('https://api.test.com', undefined, undefined, undefined, 'rt_runtime_token');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const handler = mockInstance.interceptors.request.use.mock.calls[0][0] as (config: { headers: Record<string, string> }) => { headers: Record<string, string> };
+      const config = { headers: {} as Record<string, string> };
+      handler(config);
+      expect(config.headers['X-Runtime-Token']).toBe('rt_runtime_token');
+    });
+
+    it('should prefer runtime token over extension API key', () => {
+      const mockInstance = createMockAxiosInstance();
+      mockedAxios.create.mockReturnValue(mockInstance as unknown as AxiosInstance);
+
+      new KiketHttpClient('https://api.test.com', undefined, undefined, 'ext_key', 'rt_runtime_token');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const handler = mockInstance.interceptors.request.use.mock.calls[0][0] as (config: { headers: Record<string, string> }) => { headers: Record<string, string> };
+      const config = { headers: {} as Record<string, string> };
+      handler(config);
+      expect(config.headers['X-Runtime-Token']).toBe('rt_runtime_token');
+      expect(config.headers['X-Kiket-API-Key']).toBeUndefined();
+    });
+
+    it('should fall back to extension API key when no runtime token', () => {
+      const mockInstance = createMockAxiosInstance();
+      mockedAxios.create.mockReturnValue(mockInstance as unknown as AxiosInstance);
+
+      new KiketHttpClient('https://api.test.com', undefined, undefined, 'ext_key', undefined);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      const handler = mockInstance.interceptors.request.use.mock.calls[0][0] as (config: { headers: Record<string, string> }) => { headers: Record<string, string> };
+      const config = { headers: {} as Record<string, string> };
+      handler(config);
+      expect(config.headers['X-Kiket-API-Key']).toBe('ext_key');
+      expect(config.headers['X-Runtime-Token']).toBeUndefined();
+    });
+  });
 });
