@@ -9,7 +9,6 @@ import { TelemetryRecord, FeedbackHook, TelemetryExtras } from './types';
  */
 export class TelemetryReporter {
   private endpoint?: string;
-  private apiKey?: string;
   private enabled: boolean;
   private feedbackHook?: FeedbackHook;
   private extensionId?: string;
@@ -20,8 +19,7 @@ export class TelemetryReporter {
     telemetryUrl?: string,
     feedbackHook?: FeedbackHook,
     extensionId?: string,
-    extensionVersion?: string,
-    extensionApiKey?: string
+    extensionVersion?: string
   ) {
     // Check opt-out environment variable
     const optOut = (process.env.KIKET_SDK_TELEMETRY_OPTOUT || '').toLowerCase() === '1';
@@ -31,7 +29,6 @@ export class TelemetryReporter {
     this.extensionId = extensionId;
     this.extensionVersion = extensionVersion;
     this.endpoint = this.resolveEndpoint(telemetryUrl);
-    this.apiKey = extensionApiKey;
   }
 
   async record(
@@ -71,12 +68,7 @@ export class TelemetryReporter {
     // Send to telemetry URL (if configured)
     if (this.endpoint) {
       try {
-        const headers: Record<string, string> = {};
-        if (this.apiKey) {
-          headers['X-Kiket-API-Key'] = this.apiKey;
-        }
         await axios.post(this.endpoint, this.buildPayload(record), {
-          headers,
           timeout: 5000,
         });
       } catch (error) {

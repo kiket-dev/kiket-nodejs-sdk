@@ -41,8 +41,7 @@ export class KiketSDK {
       this.config.telemetryUrl,
       this.config.feedbackHook,
       this.config.extensionId,
-      this.config.extensionVersion,
-      this.config.extensionApiKey
+      this.config.extensionVersion
     );
     this.app = this.buildApp();
   }
@@ -196,7 +195,6 @@ export class KiketSDK {
           apiBaseUrl,
           this.config.workspaceToken,
           metadata.version,
-          this.config.extensionApiKey,
           authContext.runtimeToken
         );
 
@@ -285,7 +283,6 @@ export class KiketSDK {
   private resolveConfig(config: SDKConfig, manifest: ExtensionManifest | null): ResolvedConfig {
     const resolvedBaseUrl = config.baseUrl || process.env.KIKET_BASE_URL || 'https://kiket.dev';
     const resolvedWorkspaceToken = config.workspaceToken || process.env.KIKET_WORKSPACE_TOKEN;
-    const resolvedExtensionApiKey = config.extensionApiKey || process.env.KIKET_EXTENSION_API_KEY;
 
     // Merge settings
     let manifestSettings = settingsDefaults(manifest);
@@ -312,7 +309,6 @@ export class KiketSDK {
       telemetryEnabled: config.telemetryEnabled ?? true,
       feedbackHook: config.feedbackHook,
       telemetryUrl: resolvedTelemetryUrl,
-      extensionApiKey: resolvedExtensionApiKey,
     };
   }
 
@@ -372,7 +368,6 @@ export class KiketSDK {
  */
 interface ResolvedConfig {
   workspaceToken?: string;
-  extensionApiKey?: string;
   baseUrl: string;
   settings: Settings;
   extensionId?: string;

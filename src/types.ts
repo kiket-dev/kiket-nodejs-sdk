@@ -101,8 +101,6 @@ export interface HandlerContext {
 export interface SDKConfig {
   /** Workspace token for API authentication */
   workspaceToken?: string;
-  /** Extension API key for `/api/v1/ext` endpoints */
-  extensionApiKey?: string;
   /** Kiket API base URL */
   baseUrl?: string;
   /** Extension settings */

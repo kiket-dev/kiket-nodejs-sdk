@@ -63,8 +63,7 @@ describe('TelemetryReporter', () => {
         'https://telemetry.test.com/api/v1/ext',
         undefined,
         'ext-id',
-        '1.0.0',
-        'secret'
+        '1.0.0'
       );
 
       await reporter.record('test.event', 'v1', 'ok', 123.4);
@@ -78,7 +77,7 @@ describe('TelemetryReporter', () => {
           duration_ms: 123,
         }),
         expect.objectContaining({
-          headers: { 'X-Kiket-API-Key': 'secret' },
+          timeout: 5000,
         })
       );
     });
@@ -124,8 +123,7 @@ describe('TelemetryReporter', () => {
         'https://telemetry.test.com',
         undefined,
         'ext-id',
-        '1.0.0',
-        'secret'
+        '1.0.0'
       );
 
       // Should not throw

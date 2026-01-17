@@ -42,19 +42,16 @@ export class KiketHttpClient implements KiketClient {
   private axios: AxiosInstance;
   private workspaceToken?: string;
   private eventVersion?: string;
-  private extensionApiKey?: string;
   private runtimeToken?: string;
 
   constructor(
     baseUrl: string,
     workspaceToken?: string,
     eventVersion?: string,
-    extensionApiKey?: string,
     runtimeToken?: string
   ) {
     this.workspaceToken = workspaceToken;
     this.eventVersion = eventVersion;
-    this.extensionApiKey = extensionApiKey;
     this.runtimeToken = runtimeToken;
 
     this.axios = axios.create({
@@ -74,11 +71,8 @@ export class KiketHttpClient implements KiketClient {
       if (this.eventVersion && config.headers) {
         config.headers['X-Kiket-Event-Version'] = this.eventVersion;
       }
-      // Prefer runtime token (per-invocation) over static extension API key
       if (this.runtimeToken && config.headers) {
-        config.headers['X-Runtime-Token'] = this.runtimeToken;
-      } else if (this.extensionApiKey && config.headers) {
-        config.headers['X-Kiket-API-Key'] = this.extensionApiKey;
+        config.headers['X-Kiket-Runtime-Token'] = this.runtimeToken;
       }
       return config;
     });
