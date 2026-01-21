@@ -2,6 +2,10 @@
  * Tests for the SDK secret helper functionality.
  */
 import { KiketSDK } from '../sdk';
+import type { SecretHelper } from '../types';
+
+// Disable unsafe-* rules for this test file since we need to access private methods
+/* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 
 describe('KiketSDK secret helper', () => {
   // Test the buildSecretHelper method by accessing it through reflection
@@ -14,7 +18,9 @@ describe('KiketSDK secret helper', () => {
 
   // Access private method for testing
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const buildSecretHelper = (sdk as any).buildSecretHelper.bind(sdk);
+  const buildSecretHelper = (sdk as any).buildSecretHelper.bind(sdk) as (
+    payloadSecrets: Record<string, string>
+  ) => SecretHelper;
 
   describe('buildSecretHelper', () => {
     it('returns payload secret when present', () => {

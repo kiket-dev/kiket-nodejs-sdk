@@ -101,6 +101,8 @@ export interface HandlerContext {
 export interface SDKConfig {
   /** Workspace token for API authentication */
   workspaceToken?: string;
+  /** Webhook secret for HMAC signature verification */
+  webhookSecret?: string;
   /** Kiket API base URL */
   baseUrl?: string;
   /** Extension settings */
