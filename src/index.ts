@@ -72,3 +72,7 @@ export { KiketHandlerRegistry } from './registry';
 
 // Manifest loader
 export { loadManifest, settingsDefaults, secretKeys, applySecretEnvOverrides } from './manifest';
+
+// Response helpers
+export { allow, deny, pending } from './responses';
+export type { ExtensionResponse, ResponseMetadata, AllowOptions, ResponseOptions } from './responses';
