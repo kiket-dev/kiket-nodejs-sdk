@@ -2,7 +2,7 @@
  * Tests for extension endpoints.
  */
 import { KiketEndpoints } from '../endpoints';
-import { KiketClient } from '../types';
+import type { KiketClient } from '../types';
 
 describe('KiketEndpoints', () => {
   let mockClient: jest.Mocked<KiketClient>;
@@ -34,16 +34,14 @@ describe('KiketEndpoints', () => {
           version: 'v1',
           data: { summary: 'Test Issue' },
           timestamp: expect.any(String),
-        })
+        }),
       );
     });
 
     it('should throw error when extension ID not provided', async () => {
       const endpointsNoId = new KiketEndpoints(mockClient, undefined, 'v1');
 
-      await expect(async () => await endpointsNoId.logEvent('test', {})).rejects.toThrow(
-        'Extension ID required'
-      );
+      await expect(async () => await endpointsNoId.logEvent('test', {})).rejects.toThrow('Extension ID required');
     });
   });
 
@@ -78,10 +76,9 @@ describe('KiketEndpoints', () => {
       const customData = endpoints.customData(7);
       await customData.list('com.example.module', 'records');
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/ext/custom_data/com.example.module/records',
-        { params: { project_id: '7' } }
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/api/v1/ext/custom_data/com.example.module/records', {
+        params: { project_id: '7' },
+      });
     });
   });
 

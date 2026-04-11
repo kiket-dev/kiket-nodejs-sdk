@@ -19,7 +19,7 @@ describe('KiketSDK secret helper', () => {
   // Access private method for testing
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const buildSecretHelper = (sdk as any).buildSecretHelper.bind(sdk) as (
-    payloadSecrets: Record<string, string>
+    payloadSecrets: Record<string, string>,
   ) => SecretHelper;
 
   describe('buildSecretHelper', () => {

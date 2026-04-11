@@ -1,7 +1,7 @@
 /**
  * Webhook handler registry.
  */
-import { HandlerRegistry, HandlerMetadata, WebhookHandler } from './types';
+import type { HandlerMetadata, HandlerRegistry, WebhookHandler } from './types';
 
 /**
  * Handler registry implementation.

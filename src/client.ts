@@ -1,9 +1,9 @@
 /**
  * HTTP client for Kiket API.
  */
-import axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
+import axios, { type AxiosError, type AxiosInstance, type AxiosRequestConfig } from 'axios';
 import pkg from '../package.json';
-import { KiketClient, RequestOptions, Headers } from './types';
+import type { Headers, KiketClient, RequestOptions } from './types';
 
 /**
  * Kiket SDK error.
@@ -24,7 +24,7 @@ export class ScopeError extends Error {
   public readonly missingScopes: string[];
 
   constructor(requiredScopes: string[], availableScopes: string[]) {
-    const missing = requiredScopes.filter(s => !availableScopes.includes(s) && !availableScopes.includes('*'));
+    const missing = requiredScopes.filter((s) => !availableScopes.includes(s) && !availableScopes.includes('*'));
     super(`Insufficient scopes: missing ${missing.join(', ')}`);
     this.name = 'ScopeError';
     this.requiredScopes = requiredScopes;
@@ -44,12 +44,7 @@ export class KiketHttpClient implements KiketClient {
   private eventVersion?: string;
   private runtimeToken?: string;
 
-  constructor(
-    baseUrl: string,
-    workspaceToken?: string,
-    eventVersion?: string,
-    runtimeToken?: string
-  ) {
+  constructor(baseUrl: string, workspaceToken?: string, eventVersion?: string, runtimeToken?: string) {
     this.workspaceToken = workspaceToken;
     this.eventVersion = eventVersion;
     this.runtimeToken = runtimeToken;
@@ -83,16 +78,14 @@ export class KiketHttpClient implements KiketClient {
       (error: AxiosError) => {
         if (error.response) {
           const message =
-            (error.response.data as { error?: string })?.error ||
-            error.response.statusText ||
-            'API request failed';
+            (error.response.data as { error?: string })?.error || error.response.statusText || 'API request failed';
           throw new KiketSDKError(`${error.response.status}: ${message}`);
         } else if (error.request) {
           throw new KiketSDKError('No response from API');
         } else {
           throw new KiketSDKError(error.message);
         }
-      }
+      },
     );
   }
 

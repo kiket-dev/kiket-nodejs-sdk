@@ -1,19 +1,20 @@
 /**
  * High-level extension endpoints.
  */
-import {
+
+import { KiketCustomDataClient } from './custom_data';
+import { KiketIntakeFormsClient } from './intake_forms';
+import { KiketSecretManager } from './secrets';
+import { KiketSlaEventsClient } from './sla';
+import type {
+  CustomDataClient,
   ExtensionEndpoints,
   ExtensionSecretManager,
-  KiketClient,
-  CustomDataClient,
-  SlaEventsClient,
   IntakeFormsClient,
+  KiketClient,
   RateLimitInfo,
+  SlaEventsClient,
 } from './types';
-import { KiketSecretManager } from './secrets';
-import { KiketCustomDataClient } from './custom_data';
-import { KiketSlaEventsClient } from './sla';
-import { KiketIntakeFormsClient } from './intake_forms';
 
 const API_PREFIX = '/api/v1';
 
@@ -26,7 +27,7 @@ export class KiketEndpoints implements ExtensionEndpoints {
   constructor(
     private client: KiketClient,
     private extensionId?: string,
-    private eventVersion?: string
+    private eventVersion?: string,
   ) {
     this.secrets = new KiketSecretManager(client, extensionId);
   }
@@ -65,9 +66,7 @@ export class KiketEndpoints implements ExtensionEndpoints {
   }
 
   async rateLimit(): Promise<RateLimitInfo> {
-    const response = await this.client.get<{ rate_limit: RateLimitApiResponse }>(
-      `${API_PREFIX}/ext/rate_limit`
-    );
+    const response = await this.client.get<{ rate_limit: RateLimitApiResponse }>(`${API_PREFIX}/ext/rate_limit`);
 
     const payload = response.rate_limit;
     return {

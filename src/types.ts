@@ -22,7 +22,7 @@ export type Settings = Record<string, unknown>;
  */
 export type WebhookHandler<TPayload = WebhookPayload, TResult = unknown> = (
   payload: TPayload,
-  context: HandlerContext
+  context: HandlerContext,
 ) => Promise<TResult> | TResult;
 
 /**
@@ -264,22 +264,14 @@ export interface RateLimitInfo {
  * Custom data client.
  */
 export interface CustomDataClient {
-  list(
-    moduleKey: string,
-    table: string,
-    options?: CustomDataListOptions
-  ): Promise<CustomDataListResponse>;
+  list(moduleKey: string, table: string, options?: CustomDataListOptions): Promise<CustomDataListResponse>;
   get(moduleKey: string, table: string, recordId: string | number): Promise<CustomDataRecordResponse>;
-  create(
-    moduleKey: string,
-    table: string,
-    record: Record<string, unknown>
-  ): Promise<CustomDataRecordResponse>;
+  create(moduleKey: string, table: string, record: Record<string, unknown>): Promise<CustomDataRecordResponse>;
   update(
     moduleKey: string,
     table: string,
     recordId: string | number,
-    record: Record<string, unknown>
+    record: Record<string, unknown>,
   ): Promise<CustomDataRecordResponse>;
   delete(moduleKey: string, table: string, recordId: string | number): Promise<void>;
 }
@@ -433,7 +425,11 @@ export interface IntakeFormsClient {
   publicUrl(form: IntakeForm): string | null;
   listSubmissions(formKey: string, options?: IntakeSubmissionListOptions): Promise<IntakeSubmissionListResponse>;
   getSubmission(formKey: string, submissionId: string | number): Promise<IntakeSubmission>;
-  createSubmission(formKey: string, data: Record<string, unknown>, options?: IntakeSubmissionCreateOptions): Promise<IntakeSubmission>;
+  createSubmission(
+    formKey: string,
+    data: Record<string, unknown>,
+    options?: IntakeSubmissionCreateOptions,
+  ): Promise<IntakeSubmission>;
   approveSubmission(formKey: string, submissionId: string | number, notes?: string): Promise<IntakeSubmission>;
   rejectSubmission(formKey: string, submissionId: string | number, notes?: string): Promise<IntakeSubmission>;
   stats(formKey: string, period?: string): Promise<IntakeFormStats>;

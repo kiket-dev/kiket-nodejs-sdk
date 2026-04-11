@@ -1,5 +1,5 @@
 import { KiketIntakeFormsClient } from '../intake_forms';
-import { KiketClient, IntakeForm } from '../types';
+import type { IntakeForm, KiketClient } from '../types';
 
 describe('KiketIntakeFormsClient', () => {
   let mockClient: jest.Mocked<KiketClient>;
@@ -17,15 +17,11 @@ describe('KiketIntakeFormsClient', () => {
 
   describe('constructor', () => {
     it('throws error when projectId is empty', () => {
-      expect(() => new KiketIntakeFormsClient(mockClient, '')).toThrow(
-        'project_id is required'
-      );
+      expect(() => new KiketIntakeFormsClient(mockClient, '')).toThrow('project_id is required');
     });
 
     it('throws error when projectId is null', () => {
-      expect(() => new KiketIntakeFormsClient(mockClient, null as unknown as string)).toThrow(
-        'project_id is required'
-      );
+      expect(() => new KiketIntakeFormsClient(mockClient, null as unknown as string)).toThrow('project_id is required');
     });
   });
 
@@ -66,10 +62,9 @@ describe('KiketIntakeFormsClient', () => {
       const client = new KiketIntakeFormsClient(mockClient, 42);
       const result = await client.get('feedback');
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/ext/intake_forms/feedback',
-        { params: { project_id: '42' } }
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/api/v1/ext/intake_forms/feedback', {
+        params: { project_id: '42' },
+      });
       expect(result).toEqual(mockForm);
     });
 
@@ -125,16 +120,13 @@ describe('KiketIntakeFormsClient', () => {
       const client = new KiketIntakeFormsClient(mockClient, 42);
       await client.listSubmissions('feedback', { status: 'pending', limit: 25 });
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/ext/intake_forms/feedback/submissions',
-        {
-          params: {
-            project_id: '42',
-            status: 'pending',
-            limit: '25',
-          },
-        }
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/api/v1/ext/intake_forms/feedback/submissions', {
+        params: {
+          project_id: '42',
+          status: 'pending',
+          limit: '25',
+        },
+      });
     });
 
     it('handles Date object for since parameter', async () => {
@@ -144,14 +136,11 @@ describe('KiketIntakeFormsClient', () => {
       const sinceDate = new Date('2025-01-01T12:00:00Z');
       await client.listSubmissions('feedback', { since: sinceDate });
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/ext/intake_forms/feedback/submissions',
-        {
-          params: expect.objectContaining({
-            since: sinceDate.toISOString(),
-          }),
-        }
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/api/v1/ext/intake_forms/feedback/submissions', {
+        params: expect.objectContaining({
+          since: sinceDate.toISOString(),
+        }),
+      });
     });
 
     it('throws error when formKey is empty', async () => {
@@ -168,10 +157,9 @@ describe('KiketIntakeFormsClient', () => {
       const client = new KiketIntakeFormsClient(mockClient, 42);
       const result = await client.getSubmission('feedback', 1);
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/ext/intake_forms/feedback/submissions/1',
-        { params: { project_id: '42' } }
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/api/v1/ext/intake_forms/feedback/submissions/1', {
+        params: { project_id: '42' },
+      });
       expect(result).toEqual(mockSubmission);
     });
   });
@@ -184,33 +172,23 @@ describe('KiketIntakeFormsClient', () => {
       const client = new KiketIntakeFormsClient(mockClient, 42);
       await client.createSubmission('feedback', { email: 'test@example.com' });
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/api/v1/ext/intake_forms/feedback/submissions',
-        {
-          project_id: 42,
-          data: { email: 'test@example.com' },
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/ext/intake_forms/feedback/submissions', {
+        project_id: 42,
+        data: { email: 'test@example.com' },
+      });
     });
 
     it('includes metadata when provided', async () => {
       mockClient.post.mockResolvedValue({ id: 1 });
 
       const client = new KiketIntakeFormsClient(mockClient, 42);
-      await client.createSubmission(
-        'feedback',
-        { email: 'test@example.com' },
-        { metadata: { source: 'api' } }
-      );
+      await client.createSubmission('feedback', { email: 'test@example.com' }, { metadata: { source: 'api' } });
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/api/v1/ext/intake_forms/feedback/submissions',
-        {
-          project_id: 42,
-          data: { email: 'test@example.com' },
-          metadata: { source: 'api' },
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/ext/intake_forms/feedback/submissions', {
+        project_id: 42,
+        data: { email: 'test@example.com' },
+        metadata: { source: 'api' },
+      });
     });
   });
 
@@ -222,13 +200,10 @@ describe('KiketIntakeFormsClient', () => {
       const client = new KiketIntakeFormsClient(mockClient, 42);
       const result = await client.approveSubmission('feedback', 1, 'Looks good!');
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/api/v1/ext/intake_forms/feedback/submissions/1/approve',
-        {
-          project_id: 42,
-          notes: 'Looks good!',
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/ext/intake_forms/feedback/submissions/1/approve', {
+        project_id: 42,
+        notes: 'Looks good!',
+      });
       expect(result.status).toBe('approved');
     });
   });
@@ -241,13 +216,10 @@ describe('KiketIntakeFormsClient', () => {
       const client = new KiketIntakeFormsClient(mockClient, 42);
       const result = await client.rejectSubmission('feedback', 1, 'Invalid data');
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/api/v1/ext/intake_forms/feedback/submissions/1/reject',
-        {
-          project_id: 42,
-          notes: 'Invalid data',
-        }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/ext/intake_forms/feedback/submissions/1/reject', {
+        project_id: 42,
+        notes: 'Invalid data',
+      });
       expect(result.status).toBe('rejected');
     });
   });
@@ -266,15 +238,12 @@ describe('KiketIntakeFormsClient', () => {
       const client = new KiketIntakeFormsClient(mockClient, 42);
       const result = await client.stats('feedback', 'month');
 
-      expect(mockClient.get).toHaveBeenCalledWith(
-        '/api/v1/ext/intake_forms/feedback/stats',
-        {
-          params: {
-            project_id: '42',
-            period: 'month',
-          },
-        }
-      );
+      expect(mockClient.get).toHaveBeenCalledWith('/api/v1/ext/intake_forms/feedback/stats', {
+        params: {
+          project_id: '42',
+          period: 'month',
+        },
+      });
       expect(result.totalSubmissions).toBe(100);
     });
   });

@@ -1,8 +1,8 @@
 /**
  * Tests for manifest loader.
  */
-import { settingsDefaults, secretKeys, applySecretEnvOverrides } from '../manifest';
-import { ExtensionManifest } from '../types';
+import { applySecretEnvOverrides, secretKeys, settingsDefaults } from '../manifest';
+import type { ExtensionManifest } from '../types';
 
 describe('Manifest', () => {
   describe('settingsDefaults', () => {

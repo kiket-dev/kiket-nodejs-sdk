@@ -4,7 +4,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'yaml';
-import { ExtensionManifest, Settings } from './types';
+import type { ExtensionManifest, Settings } from './types';
 
 /**
  * Load extension manifest from file.
@@ -13,9 +13,7 @@ import { ExtensionManifest, Settings } from './types';
  * @returns Parsed manifest or null if not found
  */
 export function loadManifest(manifestPath?: string): ExtensionManifest | null {
-  const paths = manifestPath
-    ? [manifestPath]
-    : ['extension.yaml', 'manifest.yaml', 'extension.yml', 'manifest.yml'];
+  const paths = manifestPath ? [manifestPath] : ['extension.yaml', 'manifest.yaml', 'extension.yml', 'manifest.yml'];
 
   for (const p of paths) {
     const fullPath = path.resolve(process.cwd(), p);

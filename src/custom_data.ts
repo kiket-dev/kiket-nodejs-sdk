@@ -1,9 +1,9 @@
-import {
-  KiketClient,
+import type {
   CustomDataClient,
   CustomDataListOptions,
   CustomDataListResponse,
   CustomDataRecordResponse,
+  KiketClient,
 } from './types';
 
 const API_PREFIX = '/api/v1';
@@ -27,54 +27,41 @@ function buildParams(projectId: number | string, limit?: number, filters?: Recor
 }
 
 export class KiketCustomDataClient implements CustomDataClient {
-  constructor(private client: KiketClient, private projectId: number | string) {
+  constructor(
+    private client: KiketClient,
+    private projectId: number | string,
+  ) {
     if (projectId === undefined || projectId === null || projectId === '') {
       throw new Error('project_id is required for custom data operations');
     }
   }
 
-  async list(
-    moduleKey: string,
-    table: string,
-    options: CustomDataListOptions = {}
-  ): Promise<CustomDataListResponse> {
+  async list(moduleKey: string, table: string, options: CustomDataListOptions = {}): Promise<CustomDataListResponse> {
     return this.client.get(buildPath(moduleKey, table), {
       params: buildParams(this.projectId, options.limit, options.filters),
     });
   }
 
-  async get(
-    moduleKey: string,
-    table: string,
-    recordId: string | number
-  ): Promise<CustomDataRecordResponse> {
+  async get(moduleKey: string, table: string, recordId: string | number): Promise<CustomDataRecordResponse> {
     return this.client.get(buildPath(moduleKey, table, recordId), {
       params: buildParams(this.projectId),
     });
   }
 
-  async create(
-    moduleKey: string,
-    table: string,
-    record: Record<string, unknown>
-  ): Promise<CustomDataRecordResponse> {
-    return this.client.post(
-      buildPath(moduleKey, table),
-      { record },
-      { params: buildParams(this.projectId) }
-    );
+  async create(moduleKey: string, table: string, record: Record<string, unknown>): Promise<CustomDataRecordResponse> {
+    return this.client.post(buildPath(moduleKey, table), { record }, { params: buildParams(this.projectId) });
   }
 
   async update(
     moduleKey: string,
     table: string,
     recordId: string | number,
-    record: Record<string, unknown>
+    record: Record<string, unknown>,
   ): Promise<CustomDataRecordResponse> {
     return this.client.patch(
       buildPath(moduleKey, table, recordId),
       { record },
-      { params: buildParams(this.projectId) }
+      { params: buildParams(this.projectId) },
     );
   }
 

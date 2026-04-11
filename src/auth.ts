@@ -2,8 +2,9 @@
  * JWT verification for webhook payloads.
  * Verifies runtime tokens are signed by Kiket using ES256 (ECDSA P-256).
  */
-import * as jose from 'jose';
+
 import axios from 'axios';
+import * as jose from 'jose';
 
 const ALGORITHM = 'ES256';
 const ISSUER = 'kiket.dev';
@@ -48,10 +49,7 @@ export class AuthenticationError extends Error {
  * @returns The decoded JWT payload
  * @throws {AuthenticationError} If token is invalid or missing
  */
-export async function verifyRuntimeToken(
-  payload: Record<string, unknown>,
-  baseUrl: string
-): Promise<JwtPayload> {
+export async function verifyRuntimeToken(payload: Record<string, unknown>, baseUrl: string): Promise<JwtPayload> {
   const auth = (payload?.authentication as Record<string, unknown>) || {};
   const token = auth.runtime_token as string;
 
@@ -157,10 +155,7 @@ export interface AuthContext {
  * @param rawPayload - The original webhook payload
  * @returns Authentication context
  */
-export function buildAuthContext(
-  jwtPayload: JwtPayload,
-  rawPayload: Record<string, unknown>
-): AuthContext {
+export function buildAuthContext(jwtPayload: JwtPayload, rawPayload: Record<string, unknown>): AuthContext {
   const rawAuth = (rawPayload?.authentication as Record<string, unknown>) || {};
 
   return {

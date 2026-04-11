@@ -128,15 +128,9 @@ export class AuditClient {
    * @param recordId - The ID of the audit record
    * @param recordType - Type of record ("AuditLog" or "AIAuditLog"), defaults to "AuditLog"
    */
-  async getProof(
-    recordId: number,
-    recordType: 'AuditLog' | 'AIAuditLog' = 'AuditLog'
-  ): Promise<BlockchainProof> {
+  async getProof(recordId: number, recordType: 'AuditLog' | 'AIAuditLog' = 'AuditLog'): Promise<BlockchainProof> {
     const params = recordType !== 'AuditLog' ? { record_type: recordType } : {};
-    const response = await this.httpClient.get(
-      `/api/v1/audit/records/${recordId}/proof`,
-      params
-    );
+    const response = await this.httpClient.get(`/api/v1/audit/records/${recordId}/proof`, params);
     return (await response.json()) as BlockchainProof;
   }
 
@@ -144,15 +138,16 @@ export class AuditClient {
    * Verify a blockchain proof via the API.
    */
   async verify(proof: BlockchainProof | VerifyProofParams): Promise<VerificationResult> {
-    const payload = 'record_id' in proof
-      ? {
-          content_hash: proof.content_hash,
-          merkle_root: proof.merkle_root,
-          proof: proof.proof,
-          leaf_index: proof.leaf_index,
-          tx_hash: proof.tx_hash,
-        }
-      : proof;
+    const payload =
+      'record_id' in proof
+        ? {
+            content_hash: proof.content_hash,
+            merkle_root: proof.merkle_root,
+            proof: proof.proof,
+            leaf_index: proof.leaf_index,
+            tx_hash: proof.tx_hash,
+          }
+        : proof;
 
     const response = await this.httpClient.post('/api/v1/audit/verify', payload);
     return (await response.json()) as VerificationResult;
@@ -164,10 +159,13 @@ export class AuditClient {
   static computeContentHash(data: Record<string, unknown>): string {
     const sorted = Object.keys(data)
       .sort()
-      .reduce((acc, key) => {
-        acc[key] = data[key];
-        return acc;
-      }, {} as Record<string, unknown>);
+      .reduce(
+        (acc, key) => {
+          acc[key] = data[key];
+          return acc;
+        },
+        {} as Record<string, unknown>,
+      );
 
     const canonical = JSON.stringify(sorted);
     const hash = createHash('sha256').update(canonical, 'utf8').digest('hex');
@@ -177,12 +175,7 @@ export class AuditClient {
   /**
    * Verify a Merkle proof locally without making an API call.
    */
-  static verifyProofLocally(
-    contentHash: string,
-    proofPath: string[],
-    leafIndex: number,
-    merkleRoot: string
-  ): boolean {
+  static verifyProofLocally(contentHash: string, proofPath: string[], leafIndex: number, merkleRoot: string): boolean {
     const normalizeHash = (h: string): Buffer => {
       const hex = h.startsWith('0x') ? h.slice(2) : h;
       return Buffer.from(hex, 'hex');
@@ -192,7 +185,9 @@ export class AuditClient {
       if (left.compare(right) > 0) {
         [left, right] = [right, left];
       }
-      return createHash('sha256').update(Buffer.concat([left, right])).digest();
+      return createHash('sha256')
+        .update(Buffer.concat([left, right]))
+        .digest();
     };
 
     let current = normalizeHash(contentHash);

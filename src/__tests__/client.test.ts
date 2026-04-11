@@ -1,8 +1,9 @@
 /**
  * Tests for HTTP client.
  */
+
+import axios, { type AxiosInstance } from 'axios';
 import { KiketHttpClient, KiketSDKError } from '../client';
-import axios, { AxiosInstance } from 'axios';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -28,12 +29,12 @@ function createMockAxiosInstance(overrides: Partial<MockAxiosInstance> = {}): Mo
       request: {
         use: jest.fn(() => 0),
         eject: jest.fn(),
-        clear: jest.fn()
+        clear: jest.fn(),
       },
       response: {
         use: jest.fn(() => 0),
         eject: jest.fn(),
-        clear: jest.fn()
+        clear: jest.fn(),
       },
     },
     ...overrides,
@@ -53,7 +54,6 @@ describe('KiketHttpClient', () => {
       const client = new KiketHttpClient('https://api.test.com', 'token123', 'v1');
       expect(client).toBeDefined();
     });
-
   });
 
   describe('get', () => {
@@ -155,7 +155,9 @@ describe('KiketHttpClient', () => {
 
       new KiketHttpClient('https://api.test.com', undefined, undefined, 'rt_runtime_token');
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const handler = mockInstance.interceptors.request.use.mock.calls[0][0] as (config: { headers: Record<string, string> }) => { headers: Record<string, string> };
+      const handler = mockInstance.interceptors.request.use.mock.calls[0][0] as (config: {
+        headers: Record<string, string>;
+      }) => { headers: Record<string, string> };
       const config = { headers: {} as Record<string, string> };
       handler(config);
       expect(config.headers['X-Kiket-Runtime-Token']).toBe('rt_runtime_token');
@@ -167,7 +169,9 @@ describe('KiketHttpClient', () => {
 
       new KiketHttpClient('https://api.test.com', 'wk_test', 'v1');
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      const handler = mockInstance.interceptors.request.use.mock.calls[0][0] as (config: { headers: Record<string, string> }) => { headers: Record<string, string> };
+      const handler = mockInstance.interceptors.request.use.mock.calls[0][0] as (config: {
+        headers: Record<string, string>;
+      }) => { headers: Record<string, string> };
       const config = { headers: {} as Record<string, string> };
       handler(config);
       expect(config.headers['X-Kiket-Runtime-Token']).toBeUndefined();

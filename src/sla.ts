@@ -1,11 +1,8 @@
-import { KiketClient, SlaEventsClient, SlaEventsListOptions, SlaEventsListResponse } from './types';
+import type { KiketClient, SlaEventsClient, SlaEventsListOptions, SlaEventsListResponse } from './types';
 
 const SLA_PATH = '/api/v1/ext/sla/events';
 
-const buildParams = (
-  projectId: string,
-  options: SlaEventsListOptions = {}
-): Record<string, string> => {
+const buildParams = (projectId: string, options: SlaEventsListOptions = {}): Record<string, string> => {
   const params: Record<string, string> = { project_id: projectId };
   if (options.issueId !== undefined && options.issueId !== null) {
     params.issue_id = String(options.issueId);
@@ -22,7 +19,10 @@ const buildParams = (
 export class KiketSlaEventsClient implements SlaEventsClient {
   private readonly projectId: string;
 
-  constructor(private client: KiketClient, projectId: string | number) {
+  constructor(
+    private client: KiketClient,
+    projectId: string | number,
+  ) {
     if (projectId === undefined || projectId === null || String(projectId).trim() === '') {
       throw new Error('projectId is required for SLA events');
     }

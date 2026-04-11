@@ -2,7 +2,7 @@
  * Tests for secret manager.
  */
 import { KiketSecretManager } from '../secrets';
-import { KiketClient } from '../types';
+import type { KiketClient } from '../types';
 
 describe('KiketSecretManager', () => {
   let mockClient: jest.Mocked<KiketClient>;
@@ -52,10 +52,9 @@ describe('KiketSecretManager', () => {
 
       await secretManager.set('API_KEY', 'new-value');
 
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/api/v1/extensions/test-extension/secrets/API_KEY',
-        { value: 'new-value' }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/extensions/test-extension/secrets/API_KEY', {
+        value: 'new-value',
+      });
     });
 
     it('should throw error when extension ID not provided', async () => {
@@ -106,10 +105,9 @@ describe('KiketSecretManager', () => {
       await secretManager.rotate('API_KEY', 'new-value');
 
       expect(mockClient.delete).toHaveBeenCalledWith('/api/v1/extensions/test-extension/secrets/API_KEY');
-      expect(mockClient.post).toHaveBeenCalledWith(
-        '/api/v1/extensions/test-extension/secrets/API_KEY',
-        { value: 'new-value' }
-      );
+      expect(mockClient.post).toHaveBeenCalledWith('/api/v1/extensions/test-extension/secrets/API_KEY', {
+        value: 'new-value',
+      });
     });
   });
 });

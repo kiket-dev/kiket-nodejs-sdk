@@ -1,5 +1,5 @@
 import { KiketCustomDataClient } from '../custom_data';
-import { KiketClient } from '../types';
+import type { KiketClient } from '../types';
 
 describe('KiketCustomDataClient', () => {
   let mockClient: jest.Mocked<KiketClient>;
@@ -24,16 +24,13 @@ describe('KiketCustomDataClient', () => {
       filters: { status: 'active' },
     });
 
-    expect(mockClient.get).toHaveBeenCalledWith(
-      '/api/v1/ext/custom_data/com.example.crm.contacts/records',
-      {
-        params: expect.objectContaining({
-          project_id: '42',
-          limit: '10',
-          filters: JSON.stringify({ status: 'active' }),
-        }),
-      }
-    );
+    expect(mockClient.get).toHaveBeenCalledWith('/api/v1/ext/custom_data/com.example.crm.contacts/records', {
+      params: expect.objectContaining({
+        project_id: '42',
+        limit: '10',
+        filters: JSON.stringify({ status: 'active' }),
+      }),
+    });
   });
 
   it('creates records with record payload', async () => {
@@ -47,7 +44,7 @@ describe('KiketCustomDataClient', () => {
       { record: { email: 'lead@example.com' } },
       {
         params: { project_id: 'proj-1' },
-      }
+      },
     );
   });
 });

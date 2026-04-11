@@ -4,75 +4,65 @@
  * Build and run Kiket extensions with a batteries-included, strongly-typed TypeScript toolkit.
  */
 
-// Main SDK class
-export { KiketSDK, createApp } from './sdk';
-
-// Types
-export type {
-  WebhookPayload,
-  Headers,
-  Settings,
-  WebhookHandler,
-  HandlerContext,
-  SDKConfig,
-  ExtensionManifest,
-  TelemetryRecord,
-  TelemetryExtras,
-  FeedbackHook,
-  KiketClient,
-  RequestOptions,
-  ExtensionEndpoints,
-  ExtensionSecretManager,
-  CustomDataClient,
-  IntakeFormsClient,
-  IntakeForm,
-  IntakeFormField,
-  IntakeSubmission,
-  IntakeFormStats,
-  IntakeFormListOptions,
-  IntakeFormListResponse,
-  IntakeSubmissionListOptions,
-  IntakeSubmissionListResponse,
-  IntakeSubmissionCreateOptions,
-  HandlerMetadata,
-  HandlerRegistry,
-  AuthenticationContext,
-  ScopeChecker,
-} from './types';
-
-// Notifications
-export type {
-  NotificationRequest,
-  NotificationResponse,
-  ChannelValidationRequest,
-  ChannelValidationResponse,
-} from './notifications';
-export { validateNotificationRequest } from './notifications';
-
 // Auth utilities
-export { verifySignature, generateSignature, AuthenticationError } from './auth';
-
+export { AuthenticationError, generateSignature, verifySignature } from './auth';
 // Client
 export { KiketHttpClient, KiketSDKError, ScopeError } from './client';
-
+export { KiketCustomDataClient } from './custom_data';
 // Endpoints
 export { KiketEndpoints } from './endpoints';
-export { KiketCustomDataClient } from './custom_data';
-export { KiketSlaEventsClient } from './sla';
 export { KiketIntakeFormsClient } from './intake_forms';
-
-// Secrets
-export { KiketSecretManager } from './secrets';
-
-// Telemetry
-export { TelemetryReporter } from './telemetry';
-
+// Manifest loader
+export { applySecretEnvOverrides, loadManifest, secretKeys, settingsDefaults } from './manifest';
+// Notifications
+export type {
+  ChannelValidationRequest,
+  ChannelValidationResponse,
+  NotificationRequest,
+  NotificationResponse,
+} from './notifications';
+export { validateNotificationRequest } from './notifications';
 // Registry
 export { KiketHandlerRegistry } from './registry';
-
-// Manifest loader
-export { loadManifest, settingsDefaults, secretKeys, applySecretEnvOverrides } from './manifest';
-
+export type { AllowOptions, ExtensionResponse, ResponseMetadata, ResponseOptions } from './responses';
 // Response helpers
 export { allow, deny, pending } from './responses';
-export type { ExtensionResponse, ResponseMetadata, AllowOptions, ResponseOptions } from './responses';
+// Main SDK class
+export { createApp, KiketSDK } from './sdk';
+// Secrets
+export { KiketSecretManager } from './secrets';
+export { KiketSlaEventsClient } from './sla';
+// Telemetry
+export { TelemetryReporter } from './telemetry';
+// Types
+export type {
+  AuthenticationContext,
+  CustomDataClient,
+  ExtensionEndpoints,
+  ExtensionManifest,
+  ExtensionSecretManager,
+  FeedbackHook,
+  HandlerContext,
+  HandlerMetadata,
+  HandlerRegistry,
+  Headers,
+  IntakeForm,
+  IntakeFormField,
+  IntakeFormListOptions,
+  IntakeFormListResponse,
+  IntakeFormStats,
+  IntakeFormsClient,
+  IntakeSubmission,
+  IntakeSubmissionCreateOptions,
+  IntakeSubmissionListOptions,
+  IntakeSubmissionListResponse,
+  KiketClient,
+  RequestOptions,
+  ScopeChecker,
+  SDKConfig,
+  Settings,
+  TelemetryExtras,
+  TelemetryRecord,
+  WebhookHandler,
+  WebhookPayload,
+} from './types';

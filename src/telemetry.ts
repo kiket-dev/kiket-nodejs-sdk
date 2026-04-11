@@ -2,7 +2,7 @@
  * Telemetry reporter for SDK usage metrics.
  */
 import axios from 'axios';
-import { TelemetryRecord, FeedbackHook, TelemetryExtras } from './types';
+import type { FeedbackHook, TelemetryExtras, TelemetryRecord } from './types';
 
 /**
  * Telemetry reporter implementation.
@@ -19,7 +19,7 @@ export class TelemetryReporter {
     telemetryUrl?: string,
     feedbackHook?: FeedbackHook,
     extensionId?: string,
-    extensionVersion?: string
+    extensionVersion?: string,
   ) {
     // Check opt-out environment variable
     const optOut = (process.env.KIKET_SDK_TELEMETRY_OPTOUT || '').toLowerCase() === '1';
@@ -36,7 +36,7 @@ export class TelemetryReporter {
     version: string,
     status: 'ok' | 'error',
     durationMs: number,
-    extras?: TelemetryExtras
+    extras?: TelemetryExtras,
   ): Promise<void> {
     if (!this.enabled) {
       return;

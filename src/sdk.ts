@@ -1,26 +1,14 @@
 /**
  * Core SDK class and Express integration.
  */
-import express, { Express, Request, Response, NextFunction } from 'express';
-import {
-  SDKConfig,
-  WebhookHandler,
-  HandlerContext,
-  ExtensionManifest,
-  Settings,
-  TelemetryRecord,
-} from './types';
-import { verifyRuntimeToken, buildAuthContext, AuthenticationError } from './auth';
+import express, { type Express, type NextFunction, type Request, type Response } from 'express';
+import { AuthenticationError, buildAuthContext, verifyRuntimeToken } from './auth';
 import { KiketHttpClient, KiketSDKError, ScopeError } from './client';
 import { KiketEndpoints } from './endpoints';
+import { applySecretEnvOverrides, loadManifest, secretKeys, settingsDefaults } from './manifest';
 import { KiketHandlerRegistry } from './registry';
 import { TelemetryReporter } from './telemetry';
-import {
-  loadManifest,
-  settingsDefaults,
-  secretKeys,
-  applySecretEnvOverrides,
-} from './manifest';
+import type { ExtensionManifest, HandlerContext, SDKConfig, Settings, TelemetryRecord, WebhookHandler } from './types';
 
 /**
  * Main entrypoint for building Kiket extensions.
@@ -41,7 +29,7 @@ export class KiketSDK {
       this.config.telemetryUrl,
       this.config.feedbackHook,
       this.config.extensionId,
-      this.config.extensionVersion
+      this.config.extensionVersion,
     );
     this.app = this.buildApp();
   }
@@ -114,11 +102,13 @@ export class KiketSDK {
     const app = express();
 
     // Store raw body for signature verification
-    app.use(express.json({
-      verify: (req: Request, _res, buf) => {
-        (req as Request & { rawBody?: Buffer }).rawBody = buf;
-      }
-    }));
+    app.use(
+      express.json({
+        verify: (req: Request, _res, buf) => {
+          (req as Request & { rawBody?: Buffer }).rawBody = buf;
+        },
+      }),
+    );
 
     // Webhook dispatch handler
     const dispatchHandler = async (req: Request, res: Response): Promise<void> => {
@@ -195,7 +185,7 @@ export class KiketSDK {
           apiBaseUrl,
           this.config.workspaceToken,
           metadata.version,
-          authContext.runtimeToken
+          authContext.runtimeToken,
         );
 
         const endpoints = new KiketEndpoints(client, this.config.extensionId, metadata.version);
@@ -296,9 +286,7 @@ export class KiketSDK {
     const resolvedExtensionVersion = config.extensionVersion || manifest?.version;
 
     const resolvedTelemetryUrl =
-      config.telemetryUrl ||
-      process.env.KIKET_SDK_TELEMETRY_URL ||
-      `${resolvedBaseUrl}/api/v1/ext`;
+      config.telemetryUrl || process.env.KIKET_SDK_TELEMETRY_URL || `${resolvedBaseUrl}/api/v1/ext`;
 
     return {
       workspaceToken: resolvedWorkspaceToken,
@@ -327,7 +315,7 @@ export class KiketSDK {
     if (availableScopes.includes('*')) {
       return [];
     }
-    return requiredScopes.filter(scope => !availableScopes.includes(scope));
+    return requiredScopes.filter((scope) => !availableScopes.includes(scope));
   }
 
   /**

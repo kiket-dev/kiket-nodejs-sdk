@@ -1,17 +1,17 @@
 /**
  * Intake forms client for managing intake forms and submissions.
  */
-import {
-  KiketClient,
-  IntakeFormsClient,
+import type {
   IntakeForm,
-  IntakeFormListResponse,
-  IntakeSubmission,
-  IntakeSubmissionListResponse,
-  IntakeFormStats,
   IntakeFormListOptions,
-  IntakeSubmissionListOptions,
+  IntakeFormListResponse,
+  IntakeFormStats,
+  IntakeFormsClient,
+  IntakeSubmission,
   IntakeSubmissionCreateOptions,
+  IntakeSubmissionListOptions,
+  IntakeSubmissionListResponse,
+  KiketClient,
 } from './types';
 
 const API_PREFIX = '/api/v1';
@@ -20,7 +20,7 @@ const encodeSegment = (value: string) => encodeURIComponent(value);
 
 function buildParams(
   projectId: number | string,
-  options?: Record<string, string | number | boolean | undefined>
+  options?: Record<string, string | number | boolean | undefined>,
 ): Record<string, string> {
   const params: Record<string, string> = { project_id: String(projectId) };
   if (options) {
@@ -39,7 +39,7 @@ function buildParams(
 export class KiketIntakeFormsClient implements IntakeFormsClient {
   constructor(
     private client: KiketClient,
-    private projectId: number | string
+    private projectId: number | string,
   ) {
     if (projectId === undefined || projectId === null || projectId === '') {
       throw new Error('project_id is required for intake form operations');
@@ -67,10 +67,9 @@ export class KiketIntakeFormsClient implements IntakeFormsClient {
       throw new Error('formKey is required');
     }
 
-    return this.client.get(
-      `${API_PREFIX}/ext/intake_forms/${encodeSegment(formKey)}`,
-      { params: buildParams(this.projectId) }
-    );
+    return this.client.get(`${API_PREFIX}/ext/intake_forms/${encodeSegment(formKey)}`, {
+      params: buildParams(this.projectId),
+    });
   }
 
   /**
@@ -88,7 +87,7 @@ export class KiketIntakeFormsClient implements IntakeFormsClient {
    */
   async listSubmissions(
     formKey: string,
-    options: IntakeSubmissionListOptions = {}
+    options: IntakeSubmissionListOptions = {},
   ): Promise<IntakeSubmissionListResponse> {
     if (!formKey) {
       throw new Error('formKey is required');
@@ -100,10 +99,7 @@ export class KiketIntakeFormsClient implements IntakeFormsClient {
       since: options.since instanceof Date ? options.since.toISOString() : options.since,
     });
 
-    return this.client.get(
-      `${API_PREFIX}/ext/intake_forms/${encodeSegment(formKey)}/submissions`,
-      { params }
-    );
+    return this.client.get(`${API_PREFIX}/ext/intake_forms/${encodeSegment(formKey)}/submissions`, { params });
   }
 
   /**
@@ -117,10 +113,9 @@ export class KiketIntakeFormsClient implements IntakeFormsClient {
       throw new Error('submissionId is required');
     }
 
-    return this.client.get(
-      `${API_PREFIX}/ext/intake_forms/${encodeSegment(formKey)}/submissions/${submissionId}`,
-      { params: buildParams(this.projectId) }
-    );
+    return this.client.get(`${API_PREFIX}/ext/intake_forms/${encodeSegment(formKey)}/submissions/${submissionId}`, {
+      params: buildParams(this.projectId),
+    });
   }
 
   /**
@@ -130,7 +125,7 @@ export class KiketIntakeFormsClient implements IntakeFormsClient {
   async createSubmission(
     formKey: string,
     data: Record<string, unknown>,
-    options: IntakeSubmissionCreateOptions = {}
+    options: IntakeSubmissionCreateOptions = {},
   ): Promise<IntakeSubmission> {
     if (!formKey) {
       throw new Error('formKey is required');
@@ -147,20 +142,13 @@ export class KiketIntakeFormsClient implements IntakeFormsClient {
       payload.metadata = options.metadata;
     }
 
-    return this.client.post(
-      `${API_PREFIX}/ext/intake_forms/${encodeSegment(formKey)}/submissions`,
-      payload
-    );
+    return this.client.post(`${API_PREFIX}/ext/intake_forms/${encodeSegment(formKey)}/submissions`, payload);
   }
 
   /**
    * Approve a pending submission.
    */
-  async approveSubmission(
-    formKey: string,
-    submissionId: string | number,
-    notes?: string
-  ): Promise<IntakeSubmission> {
+  async approveSubmission(formKey: string, submissionId: string | number, notes?: string): Promise<IntakeSubmission> {
     if (!formKey) {
       throw new Error('formKey is required');
     }
@@ -175,18 +163,14 @@ export class KiketIntakeFormsClient implements IntakeFormsClient {
 
     return this.client.post(
       `${API_PREFIX}/ext/intake_forms/${encodeSegment(formKey)}/submissions/${submissionId}/approve`,
-      payload
+      payload,
     );
   }
 
   /**
    * Reject a pending submission.
    */
-  async rejectSubmission(
-    formKey: string,
-    submissionId: string | number,
-    notes?: string
-  ): Promise<IntakeSubmission> {
+  async rejectSubmission(formKey: string, submissionId: string | number, notes?: string): Promise<IntakeSubmission> {
     if (!formKey) {
       throw new Error('formKey is required');
     }
@@ -201,7 +185,7 @@ export class KiketIntakeFormsClient implements IntakeFormsClient {
 
     return this.client.post(
       `${API_PREFIX}/ext/intake_forms/${encodeSegment(formKey)}/submissions/${submissionId}/reject`,
-      payload
+      payload,
     );
   }
 
@@ -215,9 +199,6 @@ export class KiketIntakeFormsClient implements IntakeFormsClient {
 
     const params = buildParams(this.projectId, { period });
 
-    return this.client.get(
-      `${API_PREFIX}/ext/intake_forms/${encodeSegment(formKey)}/stats`,
-      { params }
-    );
+    return this.client.get(`${API_PREFIX}/ext/intake_forms/${encodeSegment(formKey)}/stats`, { params });
   }
 }

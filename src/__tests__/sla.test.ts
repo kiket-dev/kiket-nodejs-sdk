@@ -1,5 +1,5 @@
 import { KiketSlaEventsClient } from '../sla';
-import { KiketClient } from '../types';
+import type { KiketClient } from '../types';
 
 describe('KiketSlaEventsClient', () => {
   let mockClient: jest.Mocked<KiketClient>;
