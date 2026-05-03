@@ -155,8 +155,6 @@ export interface TelemetryRecord {
   durationMs: number;
   /** Error message (if status is 'error') */
   errorMessage?: string;
-  /** @deprecated Use errorMessage instead */
-  message?: string;
   /** Error class (if status is 'error') */
   errorClass?: string;
   /** Additional metadata */

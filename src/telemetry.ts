@@ -48,7 +48,6 @@ export class TelemetryReporter {
       status,
       durationMs,
       errorMessage: extras?.errorMessage,
-      message: extras?.errorMessage,
       errorClass: extras?.errorClass,
       metadata: extras?.metadata ?? {},
       extensionId: this.extensionId,
@@ -100,7 +99,7 @@ export class TelemetryReporter {
       timestamp: record.timestamp,
       extension_id: record.extensionId,
       extension_version: record.extensionVersion,
-      error_message: record.errorMessage ?? record.message,
+      error_message: record.errorMessage,
       error_class: record.errorClass,
       metadata,
     };
