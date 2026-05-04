@@ -62,7 +62,7 @@ export type SecretHelper = (key: string) => string | undefined;
  * Context passed to webhook handlers.
  */
 export interface HandlerContext {
-  /** Event name (e.g., "issue.created") */
+  /** Event name (e.g. `case.created` or legacy `issue.created`) */
   event: string;
   /** Event version (e.g., "v1", "v2") */
   eventVersion: string;
@@ -282,6 +282,9 @@ export interface SlaEventsClient {
 }
 
 export interface SlaEventsListOptions {
+  /** Operational case id (preferred). */
+  caseId?: string | number;
+  /** @deprecated Alias of `caseId` for transitional clients. */
   issueId?: string | number;
   state?: 'imminent' | 'breached' | 'recovered';
   limit?: number;
