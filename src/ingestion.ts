@@ -8,6 +8,8 @@ export interface PlatformIngestionClientConfig {
   baseUrl: string;
   apiKey: string;
   organizationId: string;
+  /** Shared secret for POST /api/v1/internal/extension-ingestion/normalized (extension runners). */
+  extensionRunnerSecret?: string;
 }
 
 export interface IngestRawEventInput {
@@ -34,6 +36,11 @@ export interface ImportEvidenceInput {
   payload?: Record<string, unknown>;
   retentionPolicy?: Record<string, unknown>;
   dedupeKey: string;
+}
+
+export interface SubmitNormalizedIngestionInput {
+  rawEventId: string;
+  normalized: Record<string, unknown>;
 }
 
 export class PlatformIngestionClient {
@@ -70,6 +77,17 @@ export class PlatformIngestionClient {
 
   async importEvidence(input: ImportEvidenceInput): Promise<Record<string, unknown>> {
     const response = await this.axios.post('/api/v1/platform/evidence', input);
+    return response.data as Record<string, unknown>;
+  }
+
+  async submitNormalizedIngestion(input: SubmitNormalizedIngestionInput): Promise<Record<string, unknown>> {
+    const secret = this.config.extensionRunnerSecret?.trim();
+    if (!secret) {
+      throw new Error('extensionRunnerSecret is required to submit normalized ingestion');
+    }
+    const response = await this.axios.post('/api/v1/internal/extension-ingestion/normalized', input, {
+      headers: { 'X-Kiket-Extension-Runner-Secret': secret },
+    });
     return response.data as Record<string, unknown>;
   }
 }
