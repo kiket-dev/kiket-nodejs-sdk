@@ -2,6 +2,7 @@
  * Tests for extension adapter manifest validation.
  */
 import {
+  KIKET_EXTENSION_MANIFEST_FILENAME,
   parseExtensionManifest,
   STARTER_EXTENSION_MANIFEST,
   validateExtensionManifestYaml,
@@ -26,6 +27,10 @@ spec:
 `);
     expect(result.valid).toBe(false);
     expect(result.errors.join('\n')).toContain('metadata.key');
+  });
+
+  it('exports the canonical manifest filename', () => {
+    expect(KIKET_EXTENSION_MANIFEST_FILENAME).toBe('kiket-extension.yaml');
   });
 
   it('parses a valid manifest object', () => {

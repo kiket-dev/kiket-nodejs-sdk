@@ -16,6 +16,7 @@ export { KiketIntakeFormsClient } from './intake_forms';
 export { applySecretEnvOverrides, loadManifest, secretKeys, settingsDefaults } from './manifest';
 export {
   extensionManifestSchema,
+  KIKET_EXTENSION_MANIFEST_FILENAME,
   loadExtensionManifest,
   parseExtensionManifest,
   STARTER_EXTENSION_MANIFEST,

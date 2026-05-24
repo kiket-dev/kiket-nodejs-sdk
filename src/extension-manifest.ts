@@ -1,5 +1,5 @@
 /**
- * Platform evidence adapter manifest (`extension.yaml`) validation.
+ * Platform evidence adapter manifest (`kiket-extension.yaml`) validation.
  */
 import * as fs from 'fs';
 import * as path from 'path';
@@ -58,14 +58,14 @@ export function validateExtensionManifestYaml(yamlText: string): {
         errors: error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`),
       };
     }
-    return { valid: false, errors: [error instanceof Error ? error.message : 'Invalid extension.yaml'] };
+    return { valid: false, errors: [error instanceof Error ? error.message : 'Invalid kiket-extension.yaml'] };
   }
 }
 
+export const KIKET_EXTENSION_MANIFEST_FILENAME = 'kiket-extension.yaml';
+
 export function loadExtensionManifest(manifestPath?: string): ExtensionAdapterManifest | null {
-  const paths = manifestPath
-    ? [manifestPath]
-    : ['extension.yaml', 'manifest.yaml', 'extension.yml', 'manifest.yml'];
+  const paths = manifestPath ? [manifestPath] : [KIKET_EXTENSION_MANIFEST_FILENAME];
 
   for (const candidate of paths) {
     const fullPath = path.resolve(process.cwd(), candidate);

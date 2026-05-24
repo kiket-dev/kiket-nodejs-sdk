@@ -2,6 +2,22 @@
 
 > Build and run Kiket extensions with a batteries-included, strongly-typed TypeScript toolkit.
 
+## Platform extension manifest
+
+Evidence adapters declare **`kiket-extension.yaml`** at the repo root (`apiVersion: kiket.dev/v1`, `kind: Extension`). Validate and load it with:
+
+```typescript
+import {
+  KIKET_EXTENSION_MANIFEST_FILENAME,
+  loadExtensionManifest,
+  validateExtensionManifestYaml,
+} from '@kiket-dev/sdk';
+
+const manifest = loadExtensionManifest(); // reads kiket-extension.yaml from cwd
+```
+
+Use `createIngestionClient()` to POST raw events and evidence to `/platform/*`. See [extension adapters](https://docs.kiket.dev/docs/compliance/extension-adapters) for the full layout.
+
 ## Features
 
 - 🔌 **Webhook decorators** – define handlers with `sdk.webhook("issue.created", "v1")`.

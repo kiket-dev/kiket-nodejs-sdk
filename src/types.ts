@@ -111,7 +111,7 @@ export interface SDKConfig {
   extensionId?: string;
   /** Extension version */
   extensionVersion?: string;
-  /** Path to manifest file (extension.yaml or manifest.yaml) */
+  /** Path to platform manifest file (`kiket-extension.yaml`) */
   manifestPath?: string;
   /** Auto-load secrets from KIKET_SECRET_* environment variables */
   autoEnvSecrets?: boolean;
