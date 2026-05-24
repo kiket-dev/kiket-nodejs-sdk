@@ -14,6 +14,29 @@ export { KiketEndpoints } from './endpoints';
 export { KiketIntakeFormsClient } from './intake_forms';
 // Manifest loader
 export { applySecretEnvOverrides, loadManifest, secretKeys, settingsDefaults } from './manifest';
+export {
+  extensionManifestSchema,
+  loadExtensionManifest,
+  parseExtensionManifest,
+  STARTER_EXTENSION_MANIFEST,
+  validateExtensionManifestYaml,
+  type ExtensionAdapterManifest,
+} from './extension-manifest';
+export {
+  parseWebhookMappingConfig,
+  STARTER_WEBHOOK_MAPPING,
+  WebhookFieldMappingSchema,
+  WebhookMappingConfigSchema,
+  type WebhookFieldMapping,
+  type WebhookMappingConfig,
+} from './webhook-mapping';
+export {
+  createIngestionClient,
+  PlatformIngestionClient,
+  type ImportEvidenceInput,
+  type IngestRawEventInput,
+  type PlatformIngestionClientConfig,
+} from './ingestion';
 // Notifications
 export type {
   ChannelValidationRequest,
