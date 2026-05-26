@@ -6,10 +6,9 @@ import pkg from '../package.json';
 
 export interface PlatformIngestionClientConfig {
   baseUrl: string;
+  /** Installation-scoped runner key (scopes raw-events:submit, raw-events:claim). */
   apiKey: string;
   organizationId: string;
-  /** Shared secret for POST /api/v1/internal/extension-ingestion/normalized (extension runners). */
-  extensionRunnerSecret?: string;
 }
 
 export interface IngestRawEventInput {
@@ -80,15 +79,31 @@ export class PlatformIngestionClient {
     return response.data as Record<string, unknown>;
   }
 
-  async submitNormalizedIngestion(input: SubmitNormalizedIngestionInput): Promise<Record<string, unknown>> {
-    const secret = this.config.extensionRunnerSecret?.trim();
-    if (!secret) {
-      throw new Error('extensionRunnerSecret is required to submit normalized ingestion');
-    }
-    const response = await this.axios.post('/api/v1/internal/extension-ingestion/normalized', input, {
-      headers: { 'X-Kiket-Extension-Runner-Secret': secret },
+  async claimRawEvents(input?: { limit?: number; leaseSeconds?: number }): Promise<Record<string, unknown>[]> {
+    const params = new URLSearchParams();
+    if (input?.limit) params.set('limit', String(input.limit));
+    if (input?.leaseSeconds) params.set('leaseSeconds', String(input.leaseSeconds));
+    const query = params.toString();
+    const response = await this.axios.get(`/api/v1/platform/raw-events/claim${query ? `?${query}` : ''}`);
+    const body = response.data as { data: Record<string, unknown>[] };
+    return body.data;
+  }
+
+  async submitNormalizedIngestion(input: SubmitNormalizedIngestionInput): Promise<{
+    rawEventId: string;
+    operationalEventId?: string;
+    evidenceCount: number;
+    duplicate: boolean;
+  }> {
+    const response = await this.axios.post(`/api/v1/platform/raw-events/${input.rawEventId}/submit`, {
+      normalized: input.normalized,
     });
-    return response.data as Record<string, unknown>;
+    return response.data as {
+      rawEventId: string;
+      operationalEventId?: string;
+      evidenceCount: number;
+      duplicate: boolean;
+    };
   }
 }
 
